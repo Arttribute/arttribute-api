@@ -62,7 +62,7 @@ export class ItemDto {
 
   @IsString({ each: true })
   @IsArray()
-  @IsIn(['ATR', 'NCM', 'NDR'], { each: true })
+  @IsIn(['ATR', 'NCM', 'NDR', 'SHA'], { each: true })
   license: string[];
 
   @IsNotEmpty()
