@@ -45,16 +45,16 @@ export class UserService {
     if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
       throw new UnauthorizedException('Signature does not match!');
     }
-    // const existingUser = await this.userCollection
-    //   .where('address', '==', address)
-    //   .get();
+    const existingUser = await this.userCollection
+      .where('address', '==', address)
+      .get();
 
-    // if (existingUser.data.length > 0) {
-    //   return {
-    //     message: 'This address is already registered to Arttribute',
-    //     user: existingUser.data[0].data,
-    //   };
-    // }
+    if (existingUser.data.length > 0) {
+      return {
+        message: 'This address is already registered to Arttribute',
+        user: existingUser.data[0].data,
+      };
+    }
     const createdUser = await this.userCollection.create([
       publicKey,
       publicKey,
