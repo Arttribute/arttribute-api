@@ -273,12 +273,9 @@ export class CertificateService {
 
       function getMintedTokenId() {
         return new Promise((resolve, reject) => {
-          contract.once(
-            'CertificateMinted',
-            (tokenId, owner, itemId, details, tokenUri, event) => {
-              resolve(tokenId.toString());
-            },
-          );
+          contract.once('CertificateMinted', (tokenId) => {
+            resolve(tokenId.toString());
+          });
         });
       }
       await contract.mintCertificate(
@@ -297,7 +294,8 @@ export class CertificateService {
         tokenURI,
         updatedCert,
         mintedTokenId: mintedTokenId,
-        recoveredAddress,
+        contractAddress: contractAddress,
+        receivingAddress: recoveredAddress,
       };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
