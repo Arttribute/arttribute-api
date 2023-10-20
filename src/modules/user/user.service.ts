@@ -45,9 +45,9 @@ export class UserService {
     if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
       throw new UnauthorizedException('Signature does not match!');
     }
-    const existingUser = await this.userCollection
-      .where('address', '==', address)
-      .get();
+    // const existingUser = await this.userCollection
+    //   .where('address', '==', address)
+    //   .get();
 
     if (existingUser.data.length > 0) {
       return {
@@ -81,3 +81,4 @@ export class UserService {
     }
   }
 }
+
