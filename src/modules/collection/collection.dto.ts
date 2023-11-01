@@ -60,6 +60,9 @@ export class CreateCollection {
   @IsNotEmpty()
   title: string;
 
+  @IsString()
+  featureImage: string;
+
   /**
    * Description of the collection
    * @example "A collection of Picasso's paintings"
@@ -117,3 +120,4 @@ export class CollectionResponse extends CreateCollection {
   createdAt: string;
   updatedAt: string;
 }
+

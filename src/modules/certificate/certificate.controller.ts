@@ -68,6 +68,8 @@ export class CertificateController {
     @Param('certificateId') certificateId: string,
     @Body('message') message: string,
     @Body('signature') signature: string,
+    @Body('image') image: string,
+    @Body('title') title: string,
     @User() user: UserPayload,
   ) {
     return this.certificateService.mintCertificate(
@@ -126,3 +128,4 @@ export class CertificateController {
     );
   }
 }
+

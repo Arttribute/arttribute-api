@@ -28,6 +28,9 @@ export class PolybaseCertificate {
   id: string;
 
   @IsString()
+  title?: string;
+
+  @IsString()
   owner?: string;
 
   @IsString()
@@ -38,6 +41,7 @@ export class PolybaseCertificate {
   reference!: Reference;
 
   minted?: boolean;
+  image?: string;
 }
 
 class Certificate {
@@ -58,3 +62,4 @@ class Certificate {
 export class CreateCertificate extends Certificate {}
 
 export class UpdateCertificate extends Certificate {}
+

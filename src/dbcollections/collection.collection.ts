@@ -3,6 +3,7 @@ export const CollectionCertificate = `
 collection Collection{
   id: string;
   title: string;
+  featureImage:string;
   description: string;
   isPublic: boolean;
   tags: string[];
@@ -22,9 +23,10 @@ collection Collection{
   updated: string;
 
   @index(owner);
-  constructor(id: string, title: string, description: string, isPublic: boolean, tags: string[], owner: User, project?: Project, licenseName: string, licenseReference: License[], priceAmount?: number, currency?: string, needsRequest: boolean, created: string, updated: string){
+  constructor(id: string, title: string, featureImage:string, description: string, isPublic: boolean, tags: string[], owner: User, project?: Project, licenseName: string, licenseReference: License[], priceAmount?: number, currency?: string, needsRequest: boolean, created: string, updated: string){
     this.id = id;
     this.title = title;
+    this.featureImage = featureImage;
     this.description = description;
     this.isPublic = isPublic;
     this.tags = tags;
@@ -65,3 +67,4 @@ collection Collection{
   }
 }
 `;
+
