@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Collection, Polybase, Query } from '@polybase/client';
 import { map, without } from 'lodash';
-import { UploadService } from 'src/shared/web3storage/upload.service';
+import { UploadService } from '~/shared/web3storage/upload.service';
 import { PolybaseService } from '~/shared/polybase';
 import { generateUniqueId } from '~/shared/util/generateUniqueId';
 import { UserPayload } from '../auth';
