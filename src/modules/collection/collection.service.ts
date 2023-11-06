@@ -27,19 +27,19 @@ export class CollectionService {
     user: UserPayload,
     project: any,
   ) {
-    if (!user) {
+    if (!user && !project) {
       throw new UnauthorizedException(
         'Only logged in users can create a collection',
       );
     }
 
     const id = generateUniqueId();
-    const defaultImage =
-      'https://bafybeiadgrpvvdbejsrhebyathrdtdacr4qtuioot7gkaxnkpjtjc3y3ye.ipfs.w3s.link/CollectionDefault.png';
+    // const defaultImage =
+    //   'https://bafybeiadgrpvvdbejsrhebyathrdtdacr4qtuioot7gkaxnkpjtjc3y3ye.ipfs.w3s.link/CollectionDefault.png';
     const collection = await this.collection.create([
       id,
       createCollectionDto.title,
-      createCollectionDto.featureImage || defaultImage,
+      // createCollectionDto.featureImage || defaultImage,
       createCollectionDto.description,
       createCollectionDto.isPublic,
       createCollectionDto.tags,
@@ -219,4 +219,3 @@ export class CollectionService {
     await this.collection.record(collectionId).call('del');
   }
 }
-

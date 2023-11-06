@@ -7,8 +7,6 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { User, UserPayload } from '../auth';
-import { Project, Authentication } from '../auth/decorators';
 import { Authentication, User, UserPayload } from '../auth';
 import { Project } from '../auth/decorators/project.decorator';
 import { CollectionResponse, CreateCollection } from './collection.dto';
