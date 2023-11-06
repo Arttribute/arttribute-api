@@ -6,9 +6,8 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard, User, UserPayload } from '../auth';
+import { User, UserPayload } from '../auth';
 import { Project, Authentication } from '../auth/decorators';
 import { CollectionResponse, CreateCollection } from './collection.dto';
 import { CollectionService } from './collection.service';
@@ -89,6 +88,7 @@ export class CollectionController {
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
   @ApiResponse({ status: 401, description: 'Forbidden' })
+  @Authentication('jwt')
   @Patch(':id')
   async changeVisibility(
     @Param('id') collectionId: string,
@@ -111,7 +111,7 @@ export class CollectionController {
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
   @ApiResponse({ status: 401, description: 'Forbidden' })
-  @Authentication('any')
+  @Authentication('jwt')
   @Patch(':id/items')
   async addItemToCollection(
     @Param('id') collectionId: string,
@@ -133,7 +133,7 @@ export class CollectionController {
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
   @ApiResponse({ status: 401, description: 'Forbidden' })
-  @Authentication('any')
+  @Authentication('jwt')
   @Delete(':id/items/:itemId')
   async removeItemFromCollection(
     @Param('id') collectionId: string,
@@ -154,6 +154,7 @@ export class CollectionController {
   })
   @ApiResponse({ status: 404, description: 'Collection not found' })
   @ApiResponse({ status: 401, description: 'Forbidden' })
+  @Authentication('jwt')
   @Delete(':id')
   async deleteCollection(
     @Param('id') collectionId: string,
@@ -162,4 +163,3 @@ export class CollectionController {
     return await this.collectionService.deleteCollection(collectionId, user);
   }
 }
-
