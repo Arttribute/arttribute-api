@@ -26,4 +26,3 @@ collection Project {
   }
 }
 `;
-

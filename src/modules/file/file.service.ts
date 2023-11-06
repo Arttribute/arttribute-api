@@ -3,12 +3,16 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ItemService } from '../item/item.service';
+import { nth } from 'lodash';
 import { File, Web3Storage } from 'web3.storage';
 import { generateUniqueId } from '~/shared/util/generateUniqueId';
 
 @Injectable()
 export class FileService {
+  client = new Web3Storage({
+    token: process.env.WEB3STORAGE_TOKEN || 'unavailable',
+  });
+
   public encodeToBase64(file: Express.Multer.File) {
     const encodedImage = `data:${file.mimetype};base64,${file.buffer.toString(
       'base64',
@@ -22,17 +26,14 @@ export class FileService {
     mimetype?: string;
   }) /*: Promise<{ cid: string; url: string }>*/ {
     //Get the mimetype
-    let mimeType;
-    try {
-      mimeType = this.getMimeTypeFromBase64(base64FileObject.data);
-    } catch (err) {
-      mimeType = base64FileObject.mimetype;
-    } finally {
-      if (!mimeType) {
-        throw new BadRequestException(
-          'Invalid base-64 format : missing MIME type',
-        );
-      }
+    const mimeType =
+      this.getMimeTypeFromBase64(base64FileObject.data) ||
+      base64FileObject.mimetype;
+
+    if (!mimeType) {
+      throw new BadRequestException(
+        'Invalid base-64 format : missing MIME type',
+      );
     }
 
     // Remove the data URL prefix if it exists
@@ -55,13 +56,12 @@ export class FileService {
       // Create a Blob object from the Uint8Array with the specified MIME type
       const file_blob = new Blob([uint8Array], { type: mimeType });
 
-      const client = new Web3Storage({ token: process.env.WEB3STORAGE_TOKEN });
       try {
         // Use the File object from web3.storage
         const fileName = generateUniqueId();
         const filelike = new File([file_blob], fileName);
 
-        const cid = await client.put([filelike]);
+        const cid = await this.client.put([filelike]);
         const url = this.generateURLfromCID(cid, fileName);
 
         return { cid, url };
@@ -80,18 +80,14 @@ export class FileService {
     return url;
   }
 
-  public getMimeTypeFromBase64(base64String: string): string {
+  public getMimeTypeFromBase64(base64String: string) {
     // Regular expression to match the MIME type from a Data URL
     const mimeTypeRegex = /^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-+.]+);base64,/;
 
     // Use RegExp.exec to extract the MIME type from the Base64 string
-    const match = mimeTypeRegex.exec(base64String);
+    const matches = base64String.match(mimeTypeRegex);
 
-    if (match && match[1]) {
-      return match[1]; // Return the extracted MIME type
-    } else {
-      throw new BadRequestException('Invalid base-64 format');
-    }
+    return nth(matches, 1); // Return the extracted MIME type
   }
 
   public isValidBase64(str: string): boolean {

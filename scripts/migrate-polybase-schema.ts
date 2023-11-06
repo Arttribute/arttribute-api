@@ -2,9 +2,9 @@ import { config } from 'dotenv';
 config();
 
 import { ethPersonalSign } from '@polybase/eth';
-import { PolybaseApp, PolybaseService } from '~/shared/polybase';
+import { PolybaseService } from '~/shared/polybase';
 
-import { first, map, toPairs, values } from 'lodash';
+import { first, map, toPairs } from 'lodash';
 import * as collections from '~/dbcollections';
 
 const polybaseService = new PolybaseService();
@@ -14,7 +14,7 @@ const db = polybaseService.app(process.env.POLYBASE_APP || 'unavailable');
 db.signer((data) => {
   return {
     h: 'eth-personal-sign',
-    sig: ethPersonalSign(process.env.PRIVATE_KEY, data),
+    sig: ethPersonalSign(process.env.PRIVATE_KEY || 'unavailable', data),
   };
 });
 
@@ -23,7 +23,7 @@ Promise.all(
     return db
       .applySchema(collection)
       .then((collections) => {
-        const name = first(collections).name();
+        const name = first(collections)?.name();
         console.log(`${name} schema successfully applied`);
       })
       .catch((reason) => {

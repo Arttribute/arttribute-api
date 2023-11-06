@@ -19,4 +19,3 @@ collection User {
   }
 }
 `;
-

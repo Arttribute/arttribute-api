@@ -6,17 +6,31 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard, User, UserPayload } from '../auth';
-import { CreateRequest, UpdateRequest } from './request.dto';
+import { User, UserPayload } from '../auth';
+import { CreateRequest, UpdateRequest, PermissionRequest } from './request.dto';
 import { RequestService } from './request.service';
-import { Authentication, Project } from '../auth/decorators';
+import { Authentication } from '../auth/decorators';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('requests')
 @Controller({ version: '1', path: 'requests' })
 export class RequestController {
   constructor(private readonly requestService: RequestService) {}
 
+  @ApiOperation({ summary: 'Create a new request' })
+  @ApiResponse({
+    status: 201,
+    description: 'Successfully created a new request',
+    type: PermissionRequest,
+  })
+  @ApiResponse({ status: 400, description: 'You cannot request your own item' })
   @Authentication('jwt')
   @Post()
   async createRequest(
@@ -27,6 +41,12 @@ export class RequestController {
     return this.requestService.createRequest(requestDto, userId);
   }
 
+  @ApiOperation({ summary: 'Get received requests' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved received requests',
+    type: PermissionRequest,
+  })
   @Authentication('jwt')
   @Get('/received')
   async getReceivedRequests(@User() user: UserPayload) {
@@ -34,6 +54,12 @@ export class RequestController {
     return this.requestService.getReceivedRequests(userId);
   }
 
+  @ApiOperation({ summary: 'Get sent requests' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved sent requests',
+    type: PermissionRequest,
+  })
   @Authentication('jwt')
   @Get('/sent')
   async getSentRequests(@User() user: UserPayload) {
@@ -58,4 +84,3 @@ export class RequestController {
     return this.requestService.deleteRequest(id);
   }
 }
-

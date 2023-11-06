@@ -4,7 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Collection, Polybase } from '@polybase/client';
+import { CallArgs, Collection, Polybase } from '@polybase/client';
+import { compact, concat, differenceBy, isEmpty } from 'lodash';
 import { PolybaseService } from '~/shared/polybase';
 import { generateUniqueId } from '~/shared/util/generateUniqueId';
 import { UserPayload } from '../auth';
@@ -33,10 +34,12 @@ export class CollectionService {
     }
 
     const id = generateUniqueId();
-
+    const defaultImage =
+      'https://bafybeiadgrpvvdbejsrhebyathrdtdacr4qtuioot7gkaxnkpjtjc3y3ye.ipfs.w3s.link/CollectionDefault.png';
     const collection = await this.collection.create([
       id,
       createCollectionDto.title,
+      createCollectionDto.featureImage || defaultImage,
       createCollectionDto.description,
       createCollectionDto.isPublic,
       createCollectionDto.tags,
@@ -137,20 +140,22 @@ export class CollectionService {
     if (collection.items.find((i) => i.id == item.id))
       throw new ConflictException('Item already in collection');
 
-    const newLicenses = [];
+    const newLicenses = differenceBy(
+      item.license.reference,
+      collection.license.reference,
+      'id',
+    );
 
-    for (const license of item.license.reference) {
-      if (!collection.license.reference.find((l) => l.id == license.id)) {
-        newLicenses.push(license);
-      }
-    }
+    const args: CallArgs = compact(
+      concat(
+        [record],
+        [isEmpty(newLicenses) ? undefined : (newLicenses as any)], // TODO: Temporary fix
+      ),
+    );
 
     const { data: collections } = await this.collection
       .record(collectionId)
-      .call('addItemToCollection', [
-        record,
-        newLicenses.length === 0 ? undefined : newLicenses,
-      ]);
+      .call('addItemToCollection', args);
 
     return collections;
   }
@@ -214,3 +219,4 @@ export class CollectionService {
     await this.collection.record(collectionId).call('del');
   }
 }
+

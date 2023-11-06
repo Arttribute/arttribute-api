@@ -1,5 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { JwtPayload } from 'jsonwebtoken';
+import { SetRequired } from 'type-fest';
 
 export const User = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
@@ -8,6 +9,6 @@ export const User = createParamDecorator(
   },
 );
 
-export type UserPayload = JwtPayload & {
+export type UserPayload = SetRequired<JwtPayload, 'sub'> & {
   wallet_address: string;
 };

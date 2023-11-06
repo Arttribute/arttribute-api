@@ -27,24 +27,20 @@ export class UserService {
     }
   }
 
-  async populateUser(user, project): Promise<UserPayload> {
-    if (user) {
-      return user;
-    } else {
-      user = await this.findUser(project.owner.id);
-      return {
-        'sub': user.id,
-        'wallet_address': user.address,
-      };
-    }
+  async populateUser(project: any): Promise<UserPayload> {
+    const user = await this.findUser(project.owner.id);
+    return {
+      'sub': user.id,
+      'wallet_address': user.address,
+    };
   }
 
   async createUser(
-    message,
-    signature,
-    address,
-    name,
-  ): Promise<{ message: string; user }> {
+    message: string,
+    signature: string,
+    address: string,
+    name: string,
+  ) {
     const { recoveredAddress, publicKey } = getSignerData(message, signature);
     if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
       throw new UnauthorizedException('Signature does not match!');

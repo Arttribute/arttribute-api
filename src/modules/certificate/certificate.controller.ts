@@ -1,18 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { User, UserPayload } from '../auth';
-import { Project, Authentication } from '../auth/decorators';
 import { CreateCertificate, PolybaseCertificate } from './certificate.dto';
 import { CertificateService } from './certificate.service';
+import { Project, Authentication } from '../auth/decorators';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -75,6 +68,8 @@ export class CertificateController {
     @Param('certificateId') certificateId: string,
     @Body('message') message: string,
     @Body('signature') signature: string,
+    @Body('image') image: string,
+    @Body('title') title: string,
     @User() user: UserPayload,
   ) {
     return this.certificateService.mintCertificate(
@@ -91,6 +86,11 @@ export class CertificateController {
     status: 200,
     description: 'Successfully retrieved a certificate',
     type: PolybaseCertificate,
+  })
+  @ApiHeader({
+    name: 'x-api-key',
+    description: 'The API key for the project',
+    required: true,
   })
   @Authentication('all')
   @Get('/:certificateId')

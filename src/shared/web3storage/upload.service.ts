@@ -9,10 +9,10 @@ export class UploadService {
     this.web3Storage = makeStorageClient();
   }
 
-  async upload(file) {
+  async upload(file: File) {
     try {
       // Upload the file to Web3Storage
-      const cid: CIDString = await this.web3Storage.put(file);
+      const cid: CIDString = await this.web3Storage.put([file]);
       return cid;
     } catch (error) {
       console.error('Error uploading to Web3Storage:', error);

@@ -17,19 +17,22 @@ import { NetworkModule } from './modules/network/network.module';
 
 @Module({
   imports: [
+    // Utility Modules
     AuthModule,
     PolybaseModule,
+    FileModule,
+    UploadModule,
+
+    // Feature Modules
     CertificateModule,
     CollectionModule,
     PaymentModule,
     ItemModule,
     LicenseModule,
-    UploadModule,
     UserModule,
     ProjectModule,
     RequestModule,
     NetworkModule,
-    FileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -32,8 +32,10 @@ export class LicenseModel {
   @IsString()
   symbol: string;
 
-  @IsNotEmpty()
+  /**
+   * Family of the license
+   * @example "Creative Commons"
+   */
   @IsString()
   family: string;
 }
-

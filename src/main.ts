@@ -47,6 +47,11 @@ async function bootstrap() {
     .setDescription('The Arttribute API documentation')
     .setVersion('1.0')
     .addBearerAuth()
+    .addApiKey({
+      type: 'apiKey',
+      name: 'x-api-key',
+      in: 'header',
+    })
     .build();
 
   const options: SwaggerDocumentOptions = {
@@ -55,7 +60,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config, options);
 
-  SwaggerModule.setup('api-docs', app, document, {
+  SwaggerModule.setup('docs', app, document, {
     customCss: '.swagger-ui .topbar { display: none }',
   });
 
@@ -66,4 +71,3 @@ async function bootstrap() {
   });
 }
 bootstrap();
-

@@ -6,4 +6,3 @@ export const getSignerData = (message: string, signature: string) => {
   const publicKey = ethPersonalSignRecoverPublicKey(signature, message);
   return { recoveredAddress, publicKey };
 };
-

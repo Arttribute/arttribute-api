@@ -4,6 +4,6 @@ import { RequestService } from './request.service';
 
 @Module({
   controllers: [RequestController],
-  providers: [RequestService]
+  providers: [RequestService],
 })
 export class RequestModule {}

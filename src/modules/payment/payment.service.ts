@@ -144,18 +144,21 @@ export class PaymentService {
     );
 
     const tx = await provider.getTransaction(paymentDto.transactionHash);
-    if (tx && tx.to.toLowerCase() != reference.owner.address.toLowerCase()) {
+    if (
+      tx?.to &&
+      tx.to.toLowerCase() != reference.owner.address.toLowerCase()
+    ) {
       throw new BadRequestException(
         'Invalid transaction hash: receiver does not match',
       );
     }
-    if (ethers.formatEther(tx.value) < paymentDto.amount.toString()) {
+    if (tx && ethers.formatEther(tx.value) < paymentDto.amount.toString()) {
       throw new BadRequestException(
         'Invalid transaction hash: amount does not match',
       );
     }
-    const txresult = await tx.wait();
-    if (txresult.status != 1) {
+    const txresult = await tx?.wait();
+    if (txresult && txresult.status != 1) {
       throw new BadRequestException('Transaction failed');
     }
     //create payment once transaction is confirmed
@@ -217,4 +220,3 @@ export class PaymentService {
     return payment;
   }
 }
-

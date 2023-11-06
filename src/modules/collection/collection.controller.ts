@@ -9,22 +9,34 @@ import {
 } from '@nestjs/common';
 import { User, UserPayload } from '../auth';
 import { Project, Authentication } from '../auth/decorators';
+import { Authentication, User, UserPayload } from '../auth';
+import { Project } from '../auth/decorators/project.decorator';
 import { CollectionResponse, CreateCollection } from './collection.dto';
 import { CollectionService } from './collection.service';
 import {
   ApiBearerAuth,
+  ApiHeader,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { UserService } from '../user/user.service';
 
 @ApiTags('collections')
 @ApiBearerAuth()
 @Controller({ version: '1', path: 'collections' })
 export class CollectionController {
-  constructor(private readonly collectionService: CollectionService) {}
+  constructor(
+    private readonly collectionService: CollectionService,
+    private readonly userService: UserService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new collection' })
+  @ApiHeader({
+    name: 'x-api-key',
+    description: 'API key',
+    required: true,
+  })
   @ApiResponse({
     status: 201,
     description: 'Successfully created a new collection',
@@ -34,9 +46,10 @@ export class CollectionController {
   @Post()
   async createCollection(
     @Body() createCollectionDto: CreateCollection,
-    @User() user: UserPayload,
-    @Project() project: any,
+    @User() user?: UserPayload,
+    @Project() project?: any,
   ) {
+    user ||= await this.userService.populateUser(project);
     return await this.collectionService.createCollection(
       createCollectionDto,
       user,
@@ -116,8 +129,10 @@ export class CollectionController {
   async addItemToCollection(
     @Param('id') collectionId: string,
     @Body('itemId') itemId: string,
-    @User() user: UserPayload,
+    @User() user?: UserPayload,
+    @Project() project?: any,
   ) {
+    user ||= await this.userService.populateUser(project);
     return await this.collectionService.addItemToCollection(
       collectionId,
       itemId,
@@ -138,8 +153,10 @@ export class CollectionController {
   async removeItemFromCollection(
     @Param('id') collectionId: string,
     @Param('itemId') itemId: string,
-    @User() user: UserPayload,
+    @User() user?: UserPayload,
+    @Project() project?: any,
   ) {
+    user ||= await this.userService.populateUser(project);
     return await this.collectionService.removeItemFromCollection(
       collectionId,
       itemId,

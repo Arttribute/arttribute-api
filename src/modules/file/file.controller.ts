@@ -7,9 +7,8 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileService } from './file.service';
-import { Authentication } from '../auth';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { FileService } from './file.service';
 
 // @Authentication('any')
 @Controller({ version: '1', path: 'file' })
@@ -22,7 +21,7 @@ export class FileController {
     @UploadedFile(
       new ParseFilePipe({
         // 10 MB size limit
-        validators: [new MaxFileSizeValidator({ maxSize: 10000000 })],
+        validators: [new MaxFileSizeValidator({ maxSize: 10000000 }) as any], // TODO: Temporary fix
       }),
     )
     file: Express.Multer.File,
