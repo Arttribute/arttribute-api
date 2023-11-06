@@ -64,5 +64,8 @@ collection Item{
     };
     this.updated = updated;
   }
+  del(){
+    selfdestruct();
+  }
 }
 `;
