@@ -180,8 +180,8 @@ export class ItemService {
       createItem.license.map((license_id) =>
         LicenseCollection.record(license_id),
       ),
-      createItem.price.amount || 0,
-      createItem.price.currency || 'none',
+      createItem.price?.amount || 0,
+      createItem.price?.currency || 'none',
       createItem.needsRequest,
       current_time,
       current_time,

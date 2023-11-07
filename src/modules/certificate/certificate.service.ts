@@ -111,10 +111,12 @@ export class CertificateService {
     const { data: permissionRequest } = await this.requestCollection
       .where('reference.id', '==', referenceId)
       .where('reference.type', '==', referenceType)
-      .where('sender', '==', this.db.collection('User').record(user.sub))
       .get()
       .then((result) => {
-        const res = first(result.data);
+        //check if any of the permission requests belong to the user if non return error
+        const res = result.data.find(
+          (request: any) => request.data.sender.id === user.sub,
+        );
         if (!res) {
           throw new NotFoundException(
             'Permission request not found: This item/collection requires permission request',
@@ -141,10 +143,12 @@ export class CertificateService {
     const { data: payment } = await this.paymentCollection
       .where('reference.id', '==', referenceId)
       .where('reference.type', '==', referenceType)
-      .where('sender', '==', this.db.collection('User').record(user.sub))
       .get()
       .then((result) => {
-        const res = first(result.data);
+        //check if any of the payments belong to the user if non return error
+        const res = result.data.find(
+          (payment: any) => payment.data.sender.id === user.sub,
+        );
         if (!res) {
           throw new NotFoundException(
             'Payment not found: This item/collection requires payment',
