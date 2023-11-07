@@ -99,6 +99,15 @@ export class RequestService {
     return requests;
   }
 
+  //get request by id
+  async getRequest(id: string) {
+    const {data: request} = await this.requestCollection.record(id).get();
+    if (!request) {
+      throw new NotFoundException('Permission Request not found');
+    }
+    return request;
+  }
+
   //update request status
   async updateRequestStatus(
     updateDto: UpdateRequest,
@@ -106,15 +115,13 @@ export class RequestService {
     userId: string,
   ) {
     const current_time = new Date().toISOString();
-    const request = await this.requestCollection.record(requestId).get();
-    if (!request) {
-      throw new NotFoundException('record not found');
-    }
-    if (request.data.receiver.id !== userId) {
+    const request = await this.getRequest(requestId);
+    
+    if (request.receiver.id !== userId) {
       throw new UnauthorizedException('Unauthorized action: You are not owner');
     }
 
-    if (request.data.closed) {
+    if (request.closed) {
       throw new BadRequestException('request already closed');
     }
 

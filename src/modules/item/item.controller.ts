@@ -143,12 +143,13 @@ export class ItemController {
 
   @ApiOperation({ summary: 'Delete an item' })
   @ApiResponse({
-    status: 200,
+    status: 204,
     description: 'Successfully deleted an item',
   })
   @ApiResponse({ status: 404, description: 'Item not found' })
   @ApiResponse({ status: 401, description: 'Forbidden' })
   @Delete(':id')
+  @HttpCode(204)
   async remove(
     @Param('id') id: string,
     @User() user?: UserPayload,
