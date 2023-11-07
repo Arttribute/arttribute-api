@@ -18,17 +18,23 @@ db.signer((data) => {
   };
 });
 
+console.log(`Migrating app: ${process.env.POLYBASE_APP}`);
+
 Promise.all(
   map(toPairs(collections), ([key, collection]) => {
     return db
       .applySchema(collection)
       .then((collections) => {
         const name = first(collections)?.name();
-        console.log(`${name} schema successfully applied`);
+        console.log(
+          `[${process.env.POLYBASE_APP}] ${name} schema successfully applied`,
+        );
       })
       .catch((reason) => {
-        console.log(`Error applying ${key} schema`);
-        console.log(`Reason: ${reason}`);
+        console.log(
+          `[${process.env.POLYBASE_APP}] Error applying ${key} schema`,
+        );
+        console.log(`[${process.env.POLYBASE_APP}] Reason: ${reason}`);
       });
   }),
 );
