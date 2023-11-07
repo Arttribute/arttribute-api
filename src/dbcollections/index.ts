@@ -7,3 +7,4 @@ export * from './payment.collection';
 export * from './permission-request.collection';
 export * from './project.collection';
 export * from './user.collection';
+export * from './collection.collection';

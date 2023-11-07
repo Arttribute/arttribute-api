@@ -17,7 +17,7 @@ collection PermissionRequest{
 
   @index(sender);
   @index(receiver);
-  @index(reference.type, reference.id, sender);
+  @index(reference.type, reference.id);
 
   constructor(id: string, referenceType: string, referenceId: string, sender: User, receiver: User, senderNote?: string, accepted: string, closed: string, created: string, updated: string){
     this.id = id;

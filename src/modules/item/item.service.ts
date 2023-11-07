@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Collection, Polybase, Query } from '@polybase/client';
 import { map, without } from 'lodash';
-import { UploadService } from 'src/shared/web3storage/upload.service';
+import { UploadService } from '~/shared/web3storage/upload.service';
 import { PolybaseService } from '~/shared/polybase';
 import { generateUniqueId } from '~/shared/util/generateUniqueId';
 import { UserPayload } from '../auth';
@@ -180,8 +180,8 @@ export class ItemService {
       createItem.license.map((license_id) =>
         LicenseCollection.record(license_id),
       ),
-      createItem.price.amount || 0,
-      createItem.price.currency || 'none',
+      createItem.price?.amount || 0,
+      createItem.price?.currency || 'none',
       createItem.needsRequest,
       current_time,
       current_time,

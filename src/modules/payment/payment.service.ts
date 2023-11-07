@@ -124,16 +124,17 @@ export class PaymentService {
         'Payment amount is less than the required  price',
       );
     }
-
-    const paymentExists = await this.paymentCollection
-      .where('transactionHash', '==', paymentDto.transactionHash)
+    //check is payment with same transaction hash already exists: the transaction hash is the id of the payment
+    const { data: payment } = await this.paymentCollection
+      .record(paymentDto.transactionHash)
       .get();
-    if (first(paymentExists.data)?.data) {
+    if (payment) {
       throw new HttpException(
         'Payment with the transaction hash already exists',
         HttpStatus.BAD_REQUEST,
       );
     }
+
 
     //To do: get endpoint from network
     const network = await this.findNetwork(paymentDto.network.chainId);
