@@ -44,6 +44,24 @@ export class AuthController {
     return { token: token };
   }
 
+  @ApiOperation({ summary: 'Request authentication message' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully requested message',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Post('request')
+  async requestMessage(@Body('address') address: string) {
+    const message = await this.authService.generateAuthenticationMessage(
+      address,
+    );
+    if (!message) {
+      throw new UnauthorizedException('Authentication failed');
+    }
+
+    return { message };
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create API key' })
   @ApiResponse({

@@ -12,3 +12,6 @@ export const User = createParamDecorator(
 export type UserPayload = SetRequired<JwtPayload, 'sub'> & {
   wallet_address: string;
 };
+export type MessagePayload = {
+  wallet_address: string;
+};
