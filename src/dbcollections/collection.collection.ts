@@ -1,4 +1,4 @@
-export const CollectionCertificate = `
+export const ArttributeCollection = `
 @public 
 collection Collection{
   id: string;

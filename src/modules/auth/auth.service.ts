@@ -12,7 +12,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { PolybaseService } from '~/shared/polybase';
 import { generateUniqueId } from '~/shared/util/generateUniqueId';
 import { getSignerData } from '~/shared/util/getSignerData';
-import { UserPayload } from './decorators';
+import { MessagePayload, UserPayload } from './decorators';
+import { ProjectService } from '../project/project.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private polybaseService: PolybaseService,
+    private projectService: ProjectService,
   ) {
     this.db = polybaseService.app(process.env.POLYBASE_APP || 'unavailable');
     this.userCollection = this.db.collection('User');
@@ -33,6 +35,17 @@ export class AuthService {
 
   async authenticate(address: string, message: string, signature: string) {
     try {
+      try {
+        const { wallet_address } =
+          this.jwtService.verify<MessagePayload>(message);
+        if (wallet_address.toLowerCase() !== address.toLowerCase()) {
+          throw new Error(
+            'Message address and authenticating address do not match',
+          );
+        }
+      } catch (err) {
+        throw new UnauthorizedException('Message signed is invalid!');
+      }
       const { recoveredAddress, publicKey } = getSignerData(message, signature);
       if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
         throw new UnauthorizedException('Signature does not match!');
@@ -57,13 +70,13 @@ export class AuthService {
 
   async createKey(userId: string, projectId: string) {
     //check if user is owner of project
-    const currentProject = await this.findProject(projectId);
+    const currentProject = await this.projectService.findOne(projectId);
     if (currentProject.owner.id !== userId) {
       throw new UnauthorizedException('Unauthorized action');
     }
     const createdAt = new Date().toISOString();
 
-    const apiKey = this.generate();
+    const apiKey = this.generateAPIKey();
 
     const key = await this.apikeyCollection.create([
       generateUniqueId(),
@@ -92,27 +105,24 @@ export class AuthService {
     return project;
   }
 
+  async generateAuthenticationMessage(address: string) {
+    const payload: MessagePayload = { wallet_address: address };
+    const token = this.jwtService.sign(payload, { expiresIn: '10m' });
+
+    return token;
+  }
+
   validateToken(token: string) {
     return this.jwtService.verify<UserPayload>(token);
   }
 
-  private generate() {
+  private generateAPIKey() {
     // UUID to hex
     const buffer = Buffer.alloc(16);
     uuidv4({}, buffer);
     const key = buffer.toString('base64');
 
     return key;
-  }
-
-  //get project by id
-  private async findProject(id: string) {
-    const { data: project } = await this.projectCollection.record(id).get();
-    if (project) {
-      return project;
-    } else {
-      throw new NotFoundException('project record not found');
-    }
   }
 
   hash(val: string) {
