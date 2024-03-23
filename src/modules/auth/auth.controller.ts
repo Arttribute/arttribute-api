@@ -3,6 +3,8 @@ import {
   Controller,
   Param,
   Post,
+  Query,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -13,11 +15,16 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Authentication, User, UserPayload } from './decorators';
+import { OIDCService } from './oidc/oidc.service';
+import { Duration } from 'luxon';
 
 @ApiTags('auth')
 @Controller({ version: '1', path: 'auth' })
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly oidcService: OIDCService,
+  ) {}
 
   @ApiOperation({ summary: 'Verify signature' })
   @ApiResponse({
@@ -27,9 +34,11 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Post()
   async verifySignature(
+    @Res() response,
     @Body('address') address: string,
     @Body('message') message: string,
     @Body('signature') signature: string,
+    @Query('clientId') clientId?: string,
   ): Promise<{ token: string }> {
     const verifiedUser = await this.authService.authenticate(
       address,
@@ -39,6 +48,25 @@ export class AuthController {
     const token = verifiedUser.token;
     if (!token) {
       throw new UnauthorizedException('Authentication failed');
+    }
+
+    if (clientId) {
+      // if the client exists, redirect
+      const { code, redirect } = await this.oidcService.generateOIDCCode(
+        clientId,
+        verifiedUser,
+      );
+      // Add token so user is still signed in for arttribute applications
+      response.cookie('idToken', token, {
+        domain: '.arttribute.io',
+        maxAge: Duration.fromObject({ hours: 1 }).as('milliseconds'),
+        secure: process.env.LOCATION != 'LOCAL',
+        sameSite: 'lax',
+        path: '/',
+      });
+      const url = new URL(redirect);
+      url.searchParams.append('code', code);
+      return response.redirect(url);
     }
 
     return { token: token };

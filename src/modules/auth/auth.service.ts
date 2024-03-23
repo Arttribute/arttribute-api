@@ -13,6 +13,7 @@ import { PolybaseService } from '~/shared/polybase';
 import { generateUniqueId } from '~/shared/util/generateUniqueId';
 import { getSignerData } from '~/shared/util/getSignerData';
 import { MessagePayload, UserPayload } from './decorators';
+import { ProjectService } from '../project/project.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +25,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private polybaseService: PolybaseService,
+    private projectService: ProjectService,
   ) {
     this.db = polybaseService.app(process.env.POLYBASE_APP || 'unavailable');
     this.userCollection = this.db.collection('User');
@@ -68,7 +70,7 @@ export class AuthService {
 
   async createKey(userId: string, projectId: string) {
     //check if user is owner of project
-    const currentProject = await this.findProject(projectId);
+    const currentProject = await this.projectService.findOne(projectId);
     if (currentProject.owner.id !== userId) {
       throw new UnauthorizedException('Unauthorized action');
     }
@@ -121,16 +123,6 @@ export class AuthService {
     const key = buffer.toString('base64');
 
     return key;
-  }
-
-  //get project by id
-  private async findProject(id: string) {
-    const { data: project } = await this.projectCollection.record(id).get();
-    if (project) {
-      return project;
-    } else {
-      throw new NotFoundException('project record not found');
-    }
   }
 
   hash(val: string) {
