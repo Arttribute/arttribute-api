@@ -14,8 +14,11 @@ import { first } from 'lodash';
 import typia from 'typia';
 import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
 import { InsertArtifact, artifactTable } from '~/modules/database/schema';
-import { SupabaseService } from '~/modules/database/supabase';
+import { DatabaseService } from '~/modules/database/database.service';
 import * as tables from '~/modules/database/schema';
+import parseDataURL from 'data-urls';
+import { DataURL } from 'data-urls';
+import { StorageService } from '~/modules/storage/storage.service';
 
 type Tables = typeof tables;
 
@@ -30,11 +33,33 @@ module ArtifactService {
 
 @Injectable()
 export class ArtifactService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private storageService: StorageService,
+  ) {}
 
   public async createArtifact(props: { value: CreateArtifact }) {
     const { value } = props;
-    let artifactEntry = await this.supabaseService.client
+
+    const data = parseDataURL(value.asset.data);
+
+    if (!data) {
+      throw new InternalServerErrorException(
+        'Error occurred while parsing asset',
+      );
+    }
+
+    const filename = value.asset.name || value.name; // Should add a string to the filename
+
+    const asset = new File([Buffer.from(data.body)], filename, {
+      type: value.asset.mimetype || data.mimeType.essence,
+    });
+
+    this.storageService.storage
+      .from('artifacts')
+      .upload(filename, asset, { upsert: false });
+
+    let artifactEntry = await this.databaseService
       .insert(artifactTable)
       .values(typia.misc.assertPrune<InsertArtifact>(value))
       .returning()
@@ -62,6 +87,8 @@ export class ArtifactService {
     if (!artifactEntry) {
       throw new NotFoundException(`Artifact with id: ${id} not found`);
     }
+
+    return artifactEntry;
   }
 
   public async getArtifacts(
@@ -69,7 +96,7 @@ export class ArtifactService {
     options?: ArtifactService.ArtifactTableQuery,
   ) {
     const artifactEntries =
-      await this.supabaseService.client.query.artifactTable.findMany({
+      await this.databaseService.query.artifactTable.findMany({
         ...options,
       });
 
@@ -83,7 +110,7 @@ export class ArtifactService {
     const { id, value } = props;
     const { where: condition = eq(artifactTable.id, id) } = options || {};
 
-    const artifactEntry = await this.supabaseService.client
+    const artifactEntry = await this.databaseService
       .update(artifactTable)
       .set(typia.misc.assertPrune<Partial<InsertArtifact>>(value))
       .where(condition)
@@ -101,7 +128,7 @@ export class ArtifactService {
 
   public async deleteArtifact(props: { id: string }) {
     const { id } = props;
-    await this.supabaseService.client
+    await this.databaseService
       .delete(artifactTable)
       .where(eq(artifactTable.id, id));
     return;

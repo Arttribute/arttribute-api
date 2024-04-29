@@ -1,12 +1,11 @@
-import { forwardRef, Global, Module } from "@nestjs/common";
-import { SupabaseModule } from "./supabase/supabase.module";
-import { SupabaseService } from "./supabase/supabase.service";
+import { Global, Module } from '@nestjs/common';
+import { DatabaseServiceProvider } from './database.service';
 
 @Global()
 @Module({
-	imports: [SupabaseModule],
-	controllers: [],
-	providers: [],
-	exports: [SupabaseModule],
+  imports: [],
+  controllers: [],
+  providers: [DatabaseServiceProvider],
+  exports: [DatabaseServiceProvider],
 })
 export class DatabaseModule {}

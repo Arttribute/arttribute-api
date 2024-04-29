@@ -15,9 +15,12 @@ export const artifactTable = pgTable('artifact', {
     .default(sql`uuid_generate_v4()`)
     .primaryKey()
     .$type<string & tags.Format<'uuid'>>(),
-  creator: text('creator_id').notNull(),
+
+  name: text('name').notNull(),
 
   license: text('license').notNull(),
+
+  creator: text('creator_id').notNull(),
 
   imageUrl: text('image_url').notNull(),
   artifactHash: text('artifact_hash').notNull(),

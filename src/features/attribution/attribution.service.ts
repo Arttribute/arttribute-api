@@ -17,7 +17,7 @@ import {
   UpdateAttribution,
 } from '~/models/attribution.model';
 import { InsertAttribution, attributionTable } from '~/modules/database/schema';
-import { SupabaseService } from '~/modules/database/supabase';
+import { DatabaseService } from '~/modules/database/database.service';
 import * as tables from '~/modules/database/schema';
 
 type Tables = typeof tables;
@@ -33,11 +33,11 @@ module AttributionService {
 
 @Injectable()
 export class AttributionService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   public async createAttribution(props: { value: CreateAttribution }) {
     const { value } = props;
-    let attributionEntry = await this.supabaseService.client
+    let attributionEntry = await this.databaseService
       .insert(attributionTable)
       .values(typia.misc.assertPrune<InsertAttribution>(value))
       .returning()
@@ -65,6 +65,8 @@ export class AttributionService {
     if (!attributionEntry) {
       throw new NotFoundException(`Attribution with id: ${id} not found`);
     }
+
+    return attributionEntry;
   }
 
   public async getAttributions(
@@ -72,7 +74,7 @@ export class AttributionService {
     options?: AttributionService.AttributionTableQuery,
   ) {
     const attributionEntries =
-      await this.supabaseService.client.query.attributionTable.findMany({
+      await this.databaseService.query.attributionTable.findMany({
         ...options,
       });
 
@@ -88,7 +90,7 @@ export class AttributionService {
     const { id, value } = props;
     const { where: condition = eq(attributionTable.id, id) } = options || {};
 
-    const attributionEntry = await this.supabaseService.client
+    const attributionEntry = await this.databaseService
       .update(attributionTable)
       .set(typia.misc.assertPrune<Partial<InsertAttribution>>(value))
       .where(condition)
@@ -106,7 +108,7 @@ export class AttributionService {
 
   public async deleteAttribution(props: { id: string }) {
     const { id } = props;
-    await this.supabaseService.client
+    await this.databaseService
       .delete(attributionTable)
       .where(eq(attributionTable.id, id));
     return;

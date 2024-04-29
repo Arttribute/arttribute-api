@@ -1,30 +1,16 @@
-import { config } from 'dotenv';
-config();
+import { SwaggerModule } from '@nestjs/swagger';
 
-import { VersioningType } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'express';
-import morgan from 'morgan';
-import { AppModule } from './app.module';
+import { nestServer } from './server';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableCors();
+// Local
+nestServer().then(async (app) => {
+  const port = process.env.PORT || 3200;
 
-  app.use(morgan('short'));
-
-  app.use(cookieParser());
-
-  app.use(json({ limit: '50mb' }));
-  app.use(urlencoded({ extended: true, limit: '50mb' }));
-
-  app.enableVersioning({ type: VersioningType.URI });
-
-  const port = process.env.PORT || 5000;
+  const docs = require('../../dist/swagger.json');
+  docs.servers = [{ url: `http://localhost:${port}` }];
+  SwaggerModule.setup('docs', app, docs);
 
   await app.listen(port, () => {
     console.log(`Listening on ${port}`);
   });
-}
-bootstrap();
+});

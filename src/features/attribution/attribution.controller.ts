@@ -8,6 +8,7 @@ import {
   CreateAttribution,
   UpdateAttribution,
 } from '~/models/attribution.model';
+import { Result } from '~/shared/response';
 
 @Controller({ version: '2', path: 'attributions' })
 export class AttributionController {
@@ -20,7 +21,7 @@ export class AttributionController {
       value: body,
     });
 
-    return { data: attribution };
+    return Result(attribution);
   }
 
   @Get('/:attributionId')
@@ -30,7 +31,7 @@ export class AttributionController {
     const attribution = await this.attributionService.getAttribution({
       id: attributionId,
     });
-    return { data: attribution };
+    return Result(attribution);
   }
 
   @Patch('/:attributionId')
@@ -43,9 +44,7 @@ export class AttributionController {
       id: attributionId,
       value: delta,
     });
-    return {
-      data: updatedAttribution,
-    };
+    return Result(updatedAttribution);
   }
 
   @Delete('/:attributionId')

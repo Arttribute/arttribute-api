@@ -5,6 +5,7 @@ import { Collection } from '~/modules/database/schema';
 import { TypedBody, TypedParam } from '@nestia/core';
 import typia from 'typia';
 import { CreateCollection, UpdateCollection } from '~/models/collection.model';
+import { Result } from '~/shared/response';
 
 @Controller({ version: '2', path: 'collections' })
 export class CollectionController {
@@ -17,7 +18,7 @@ export class CollectionController {
       value: body,
     });
 
-    return { data: collection };
+    return Result(collection);
   }
 
   @Get('/:collectionId')
@@ -27,7 +28,7 @@ export class CollectionController {
     const collection = await this.collectionService.getCollection({
       id: collectionId,
     });
-    return { data: collection };
+    return Result(collection);
   }
 
   @Patch('/:collectionId')
@@ -40,9 +41,7 @@ export class CollectionController {
       id: collectionId,
       value: delta,
     });
-    return {
-      data: updatedCollection,
-    };
+    return Result(updatedCollection);
   }
 
   @Delete('/:collectionId')

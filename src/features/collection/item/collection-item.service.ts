@@ -20,7 +20,7 @@ import {
   InsertCollectionItem,
   collectionItemTable,
 } from '~/modules/database/schema';
-import { SupabaseService } from '~/modules/database/supabase';
+import { DatabaseService } from '~/modules/database/database.service';
 import * as tables from '~/modules/database/schema';
 
 type Tables = typeof tables;
@@ -36,11 +36,11 @@ module CollectionItemService {
 
 @Injectable()
 export class CollectionItemService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   public async createCollectionItem(props: { value: CreateCollectionItem }) {
     const { value } = props;
-    let collectionItemEntry = await this.supabaseService.client
+    let collectionItemEntry = await this.databaseService
       .insert(collectionItemTable)
       .values(typia.misc.assertPrune<InsertCollectionItem>(value))
       .returning()
@@ -81,7 +81,7 @@ export class CollectionItemService {
     options?: CollectionItemService.CollectionItemTableQuery,
   ) {
     const collectionItemEntries =
-      await this.supabaseService.client.query.collectionItemTable.findMany({
+      await this.databaseService.query.collectionItemTable.findMany({
         ...options,
       });
 
@@ -106,7 +106,7 @@ export class CollectionItemService {
       ),
     } = options || {};
 
-    const collectionItemEntry = await this.supabaseService.client
+    const collectionItemEntry = await this.databaseService
       .update(collectionItemTable)
       .set(typia.misc.assertPrune<Partial<InsertCollectionItem>>(value))
       .where(condition)
@@ -127,7 +127,7 @@ export class CollectionItemService {
     artifactId: string;
   }) {
     const { artifactId, collectionId } = props;
-    await this.supabaseService.client
+    await this.databaseService
       .delete(collectionItemTable)
       .where(
         and(

@@ -14,7 +14,7 @@ import { first } from 'lodash';
 import typia from 'typia';
 import { CreateCollection, UpdateCollection } from '~/models/collection.model';
 import { InsertCollection, collectionTable } from '~/modules/database/schema';
-import { SupabaseService } from '~/modules/database/supabase';
+import { DatabaseService } from '~/modules/database/database.service';
 import * as tables from '~/modules/database/schema';
 
 type Tables = typeof tables;
@@ -30,11 +30,11 @@ module CollectionService {
 
 @Injectable()
 export class CollectionService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   public async createCollection(props: { value: CreateCollection }) {
     const { value } = props;
-    let collectionEntry = await this.supabaseService.client
+    let collectionEntry = await this.databaseService
       .insert(collectionTable)
       .values(typia.misc.assertPrune<InsertCollection>(value))
       .returning()
@@ -62,6 +62,8 @@ export class CollectionService {
     if (!collectionEntry) {
       throw new NotFoundException(`Collection with id: ${id} not found`);
     }
+
+    return collectionEntry;
   }
 
   public async getCollections(
@@ -69,7 +71,7 @@ export class CollectionService {
     options?: CollectionService.CollectionTableQuery,
   ) {
     const collectionEntries =
-      await this.supabaseService.client.query.collectionTable.findMany({
+      await this.databaseService.query.collectionTable.findMany({
         ...options,
       });
 
@@ -83,7 +85,7 @@ export class CollectionService {
     const { id, value } = props;
     const { where: condition = eq(collectionTable.id, id) } = options || {};
 
-    const collectionEntry = await this.supabaseService.client
+    const collectionEntry = await this.databaseService
       .update(collectionTable)
       .set(typia.misc.assertPrune<Partial<InsertCollection>>(value))
       .where(condition)
@@ -101,7 +103,7 @@ export class CollectionService {
 
   public async deleteCollection(props: { id: string }) {
     const { id } = props;
-    await this.supabaseService.client
+    await this.databaseService
       .delete(collectionTable)
       .where(eq(collectionTable.id, id));
     return;
