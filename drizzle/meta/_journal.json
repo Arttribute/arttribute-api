@@ -22,6 +22,27 @@
       "when": 1714398180191,
       "tag": "0002_concerned_roxanne_simpson",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1714760246584,
+      "tag": "0003_greedy_talos",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1714761515533,
+      "tag": "0004_first_the_initiative",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1714762006045,
+      "tag": "0005_living_the_professor",
+      "breakpoints": true
     }
   ]
 }

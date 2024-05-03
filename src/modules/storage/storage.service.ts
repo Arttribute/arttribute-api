@@ -11,9 +11,17 @@ export class StorageService extends SupabaseClient {
       process.env.SUPABASE_URL || 'unavailable',
       process.env.SUPABASE_KEY || 'unavailable',
     );
-    this.storage.createBucket('artifacts', {
-      fileSizeLimit: 2 ** 20 * 10, // 10 megabytes
-      public: true,
-    });
+    this.storage
+      .createBucket('artifacts', {
+        fileSizeLimit: 2 ** 20 * 10, // 10 megabytes
+        public: true,
+      })
+      .then((val) => {
+        if (val.error) {
+          console.error(`Error creating storage bucket: ${val.error.message}`);
+          return;
+        }
+        console.log(`Create storage bucket: ${val.data?.name}`);
+      });
   }
 }

@@ -15,11 +15,11 @@ export const collectionTable = pgTable('collection', {
     .default(sql`uuid_generate_v4()`)
     .primaryKey()
     .$type<string & tags.Format<'uuid'>>(),
-  creator: text('creator_id').notNull(),
+  creator: text('creator_id'),
 
   name: text('name').notNull(),
 
-  license: text('license').notNull(),
+  license: text('license'),
 
   whitelist: jsonb('whitelist')
     .$type<Array<string & tags.Format<'uuid'>>>()

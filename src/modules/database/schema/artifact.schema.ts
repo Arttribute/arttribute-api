@@ -18,12 +18,12 @@ export const artifactTable = pgTable('artifact', {
 
   name: text('name').notNull(),
 
-  license: text('license').notNull(),
+  license: text('license'),
 
-  creator: text('creator_id').notNull(),
+  creator: text('creator_id'),
 
-  imageUrl: text('image_url').notNull(),
-  artifactHash: text('artifact_hash').notNull(),
+  imageUrl: text('image_url'),
+  artifactHash: text('artifact_hash').notNull().unique(),
 
   whitelist: jsonb('whitelist')
     .$type<Array<string & tags.Format<'uuid'>>>()

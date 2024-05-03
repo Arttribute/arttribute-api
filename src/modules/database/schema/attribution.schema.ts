@@ -22,7 +22,7 @@ export const attributionTable = pgTable('attribution', {
   artifactId: uuid('fk_artifact_id').references(() => artifactTable.id),
   collectionId: uuid('fk_collection_id').references(() => collectionTable.id),
 
-  attributorId: text('attributor_id').notNull(),
+  attributorId: text('attributor_id'),
   isValid: boolean('is_valid').notNull().default(true),
 
   expiresAt: timestamp('expires_at', { withTimezone: true }),

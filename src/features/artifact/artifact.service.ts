@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -19,6 +20,10 @@ import * as tables from '~/modules/database/schema';
 import parseDataURL from 'data-urls';
 import { DataURL } from 'data-urls';
 import { StorageService } from '~/modules/storage/storage.service';
+// import phash from 'sharp-phash';
+const phash = require('sharp-phash');
+import { extension } from 'mime-types';
+import { PostgresError } from 'postgres';
 
 type Tables = typeof tables;
 
@@ -49,21 +54,48 @@ export class ArtifactService {
       );
     }
 
-    const filename = value.asset.name || value.name; // Should add a string to the filename
+    const dataBuffer = Buffer.from(data.body);
 
-    const asset = new File([Buffer.from(data.body)], filename, {
-      type: value.asset.mimetype || data.mimeType.essence,
-    });
+    const asset = new File(
+      [dataBuffer],
+      value.asset.name || value.name, // Should add a string to the filename
+      {
+        type: value.asset.mimetype || data.mimeType.essence,
+      },
+    );
 
-    this.storageService.storage
+    const filename = `${asset.name}.${extension(asset.type)}`;
+
+    const [artifactHash] = await Promise.all([
+      phash(dataBuffer),
+      this.storageService.storage.from('artifacts').upload(filename, asset, {
+        upsert: false,
+      }),
+    ]);
+
+    const {
+      data: { publicUrl },
+    } = await this.storageService.storage
       .from('artifacts')
-      .upload(filename, asset, { upsert: false });
+      .getPublicUrl(filename);
 
     let artifactEntry = await this.databaseService
       .insert(artifactTable)
-      .values(typia.misc.assertPrune<InsertArtifact>(value))
+      .values(
+        typia.misc.assertPrune<InsertArtifact>({
+          ...value,
+          imageUrl: publicUrl,
+          artifactHash,
+        }),
+      )
       .returning()
-      .then(first);
+      .then(first)
+      .catch((error: PostgresError) => {
+        console.log(error);
+        if (error.constraint_name == 'artifact_artifact_hash_unique') {
+          throw new BadRequestException('Artifact already exists');
+        }
+      });
 
     if (!artifactEntry) {
       throw new InternalServerErrorException(
