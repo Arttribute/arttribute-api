@@ -71,6 +71,13 @@
       "when": 1715024048558,
       "tag": "0009_even_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1715030682639,
+      "tag": "0010_soft_arclight",
+      "breakpoints": true
     }
   ]
 }

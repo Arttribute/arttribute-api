@@ -11,10 +11,10 @@ import {
 import { tags } from 'typia';
 
 export const arttributeLicenseEnum = pgEnum('arttribute_license', [
-  'O', // Open
-  'E', // Exclusive
-  'NC', // Non-Commercial
-  'ENC', // Exclusive Non-Commercial
+  'Open', // Open
+  'Exclusive', // Exclusive
+  'Non-Commercial', // Non-Commercial
+  'Exclusive Non-Commercial', // Exclusive Non-Commercial
 ]);
 
 export type ArttributeLicense =
