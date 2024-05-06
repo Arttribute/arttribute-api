@@ -17,7 +17,6 @@ export class ArtifactController {
     const artifact = await this.artifactService.createArtifact({
       value: body,
     });
-
     return Result(artifact);
   }
 

@@ -68,16 +68,14 @@ export class ArtifactService {
 
     const [artifactHash] = await Promise.all([
       phash(dataBuffer),
-      this.storageService.storage.from('artifacts').upload(filename, asset, {
+      this.storageService.from('artifacts').upload(filename, asset, {
         upsert: false,
       }),
     ]);
 
     const {
       data: { publicUrl },
-    } = await this.storageService.storage
-      .from('artifacts')
-      .getPublicUrl(filename);
+    } = await this.storageService.from('artifacts').getPublicUrl(filename);
 
     let artifactEntry = await this.databaseService
       .insert(artifactTable)

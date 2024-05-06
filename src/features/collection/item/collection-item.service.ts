@@ -92,13 +92,13 @@ export class CollectionItemService {
     props: {
       collectionId: string;
       artifactId: string;
-      value: UpdateCollectionItem;
+      delta: UpdateCollectionItem;
     },
     options?: CollectionItemService.CollectionItemTableQuery & {
       where?: SQL<unknown>;
     },
   ) {
-    const { artifactId, collectionId, value } = props;
+    const { artifactId, collectionId, delta } = props;
     const {
       where: condition = and(
         eq(collectionItemTable.collectionId, collectionId),
@@ -108,7 +108,7 @@ export class CollectionItemService {
 
     const collectionItemEntry = await this.databaseService
       .update(collectionItemTable)
-      .set(typia.misc.assertPrune<Partial<InsertCollectionItem>>(value))
+      .set(typia.misc.assertPrune<Partial<InsertCollectionItem>>(delta))
       .where(condition)
       .returning()
       .then(first);

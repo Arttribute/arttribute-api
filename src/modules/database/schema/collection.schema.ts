@@ -9,17 +9,18 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { tags } from 'typia';
+import { arttributeLicenseEnum } from './artifact.schema';
 
 export const collectionTable = pgTable('collection', {
   id: uuid('collection_id')
     .default(sql`uuid_generate_v4()`)
     .primaryKey()
     .$type<string & tags.Format<'uuid'>>(),
-  creator: text('creator_id'),
+  creatorId: text('creator_id'),
 
   name: text('name').notNull(),
 
-  license: text('license'),
+  license: arttributeLicenseEnum('license'),
 
   whitelist: jsonb('whitelist')
     .$type<Array<string & tags.Format<'uuid'>>>()
@@ -29,13 +30,13 @@ export const collectionTable = pgTable('collection', {
     .default(sql`'[]'::jsonb`),
 
   //   createdBy: uuid('created_by'),
-  createdAt: timestamp('created_at', { withTimezone: true }).default(
-    sql`timezone('utc', now())`,
-  ),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .default(sql`timezone('utc', now())`)
+    .notNull(),
   //   updatedBy: uuid('updated_by'),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).default(
-    sql`timezone('utc', now())`,
-  ),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .default(sql`timezone('utc', now())`)
+    .notNull(),
 });
 
 export type Collection = InferSelectModel<typeof collectionTable>;

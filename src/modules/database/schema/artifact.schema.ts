@@ -10,6 +10,16 @@ import {
 } from 'drizzle-orm/pg-core';
 import { tags } from 'typia';
 
+export const arttributeLicenseEnum = pgEnum('arttribute_license', [
+  'O', // Open
+  'E', // Exclusive
+  'NC', // Non-Commercial
+  'ENC', // Exclusive Non-Commercial
+]);
+
+export type ArttributeLicense =
+  (typeof arttributeLicenseEnum.enumValues)[number];
+
 export const artifactTable = pgTable('artifact', {
   id: uuid('artifact_id')
     .default(sql`uuid_generate_v4()`)
@@ -17,10 +27,9 @@ export const artifactTable = pgTable('artifact', {
     .$type<string & tags.Format<'uuid'>>(),
 
   name: text('name').notNull(),
+  license: arttributeLicenseEnum('license'),
 
-  license: text('license'),
-
-  creator: text('creator_id'),
+  creatorId: text('creator_id'),
 
   imageUrl: text('image_url'),
   artifactHash: text('artifact_hash').notNull().unique(),
@@ -33,13 +42,13 @@ export const artifactTable = pgTable('artifact', {
     .default(sql`'[]'::jsonb`),
 
   //   createdBy: uuid('created_by'),
-  createdAt: timestamp('created_at', { withTimezone: true }).default(
-    sql`timezone('utc', now())`,
-  ),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .default(sql`timezone('utc', now())`)
+    .notNull(),
   //   updatedBy: uuid('updated_by'),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).default(
-    sql`timezone('utc', now())`,
-  ),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .default(sql`timezone('utc', now())`)
+    .notNull(),
 });
 
 export type Artifact = InferSelectModel<typeof artifactTable>;

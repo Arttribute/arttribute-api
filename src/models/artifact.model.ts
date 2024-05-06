@@ -13,8 +13,15 @@ export interface Asset {
   name?: string;
 }
 export interface CreateArtifact
-  extends SetRequired<Omit<BaseArtifact, 'id'>, 'name'> {
+  extends SetRequired<
+    Omit<BaseArtifact, 'id' | 'creatorId' | 'createdAt' | 'updatedAt'>,
+    'name'
+  > {
   asset: Asset;
 }
 
-export interface UpdateArtifact extends Omit<BaseArtifact, 'id'> {}
+export interface UpdateArtifact
+  extends Omit<
+    BaseArtifact,
+    'id' | 'creatorId' | 'imageUrl' | 'createdAt' | 'updatedAt'
+  > {}
