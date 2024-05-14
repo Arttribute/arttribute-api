@@ -26,7 +26,7 @@ export const artifactTable = pgTable('artifact', {
     .primaryKey()
     .$type<string & tags.Format<'uuid'>>(),
 
-  name: text('name').notNull(),
+  name: text('name'),
   license: arttributeLicenseEnum('license'),
 
   creatorId: text('creator_id'),

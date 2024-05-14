@@ -13,10 +13,7 @@ export interface Asset {
   name?: string;
 }
 export interface CreateArtifact
-  extends SetRequired<
-    Omit<BaseArtifact, 'id' | 'creatorId' | 'createdAt' | 'updatedAt'>,
-    'name'
-  > {
+  extends Omit<BaseArtifact, 'id' | 'creatorId' | 'createdAt' | 'updatedAt'> {
   asset: Asset;
 }
 

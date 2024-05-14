@@ -11,7 +11,7 @@ import {
   and,
   eq,
 } from 'drizzle-orm';
-import { first } from 'lodash';
+import { compact, first, join } from 'lodash';
 import typia from 'typia';
 import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
 import { InsertArtifact, artifactTable } from '~/modules/database/schema';
@@ -22,8 +22,10 @@ import { DataURL } from 'data-urls';
 import { StorageService } from '~/modules/storage/storage.service';
 // import phash from 'sharp-phash';
 const phash = require('sharp-phash');
-import { extension } from 'mime-types';
+import path from 'path';
+import mime from 'mime-types';
 import { PostgresError } from 'postgres';
+import slug from 'slug';
 
 type Tables = typeof tables;
 
@@ -58,31 +60,32 @@ export class ArtifactService {
 
     const asset = new File(
       [dataBuffer],
-      value.asset.name || value.name, // Should add a string to the filename
+      value.asset.name || value.name || '', // Should add a string to the filename
       {
         type: value.asset.mimetype || data.mimeType.essence,
       },
     );
 
-    const filename = `${asset.name}.${extension(asset.type)}`;
+    const mimetypeFromName = mime.lookup(asset.name);
 
-    const [artifactHash] = await Promise.all([
-      phash(dataBuffer),
-      this.storageService.from('artifacts').upload(filename, asset, {
-        upsert: false,
-      }),
-    ]);
+    let extension;
+    if (mimetypeFromName && mimetypeFromName == asset.type) {
+      extension = path.extname(asset.name);
+    } else {
+      extension = '.' + mime.extension(asset.type);
+    }
 
-    const {
-      data: { publicUrl },
-    } = await this.storageService.from('artifacts').getPublicUrl(filename);
+    if (!extension) {
+      throw new BadRequestException('Invalid asset mimetype');
+    }
+
+    const [artifactHash] = await Promise.all([phash(dataBuffer), ,]);
 
     let artifactEntry = await this.databaseService
       .insert(artifactTable)
       .values(
         typia.misc.assertPrune<InsertArtifact>({
           ...value,
-          imageUrl: publicUrl,
           artifactHash,
         }),
       )
@@ -101,7 +104,36 @@ export class ArtifactService {
       );
     }
 
-    return artifactEntry;
+    const filename =
+      join(
+        compact([slug(path.basename(asset.name, extension)), artifactEntry.id]),
+        '_',
+      ) +
+      '.' +
+      extension;
+
+    await this.storageService.from('artifacts').upload(filename, asset, {
+      upsert: false,
+    });
+
+    // If an error occurs in upload, we need to delete the artifact entry
+
+    const {
+      data: { publicUrl },
+    } = this.storageService.from('artifacts').getPublicUrl(filename);
+
+    const updatedArtifactEntry = await this.databaseService
+      .update(artifactTable)
+      .set(
+        typia.misc.assertPrune<Partial<InsertArtifact>>({
+          imageUrl: publicUrl,
+        }),
+      )
+      .where(eq(artifactTable.id, artifactEntry?.id))
+      .returning()
+      .then(first);
+
+    return updatedArtifactEntry;
   }
 
   public async getArtifact(props: { id: string }) {
