@@ -10,6 +10,7 @@ import {
 } from '~/models/collection-item.model';
 import { Result } from '~/shared/response';
 import { CollectionItemService } from './collection-item.service';
+import { Public } from '../../authentication';
 
 export interface CreateCollectionItem
   extends SetOptional<RawCreateCollectionItem, 'collectionId'> {}
@@ -32,6 +33,7 @@ export class CollectionItemController {
     return Result(collection);
   }
 
+  @Public()
   @Get('/:collectionId/items/:itemId')
   public async getCollectionItem(
     @TypedParam('itemId') itemId: Artifact['id'],

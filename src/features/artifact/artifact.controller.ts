@@ -1,4 +1,4 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Delete, Post, Get, Patch } from '@nestjs/common';
 import { Artifact } from '~/modules/database/schema';
 import { ArtifactService } from './artifact.service';
 
@@ -6,6 +6,7 @@ import { TypedBody, TypedParam, TypedRoute } from '@nestia/core';
 import typia from 'typia';
 import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
 import { Result } from '~/shared/response';
+import { Public } from '../authentication';
 
 @Controller({ version: '2', path: 'artifacts' })
 export class ArtifactController {
@@ -20,7 +21,8 @@ export class ArtifactController {
     return Result(artifact);
   }
 
-  @TypedRoute.Get('/:artifactId')
+  @Public()
+  @Get('/:artifactId')
   public async getArtifact(
     @TypedParam('artifactId') artifactId: Artifact['id'],
   ) {
@@ -30,7 +32,7 @@ export class ArtifactController {
     return Result(artifact);
   }
 
-  @TypedRoute.Patch('/:artifactId')
+  @Patch('/:artifactId')
   public async updateArtifact(
     @TypedBody() delta: UpdateArtifact,
     @TypedParam('artifactId') artifactId: Artifact['id'],
@@ -43,7 +45,7 @@ export class ArtifactController {
     return Result(updatedArtifact);
   }
 
-  @TypedRoute.Delete('/:artifactId')
+  @Delete('/:artifactId')
   public async deleteArtifact(
     @TypedParam('artifactId') artifactId: Artifact['id'],
   ) {

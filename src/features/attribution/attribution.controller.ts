@@ -9,6 +9,7 @@ import {
   UpdateAttribution,
 } from '~/models/attribution.model';
 import { Result } from '~/shared/response';
+import { Public } from '../authentication';
 
 @Controller({ version: '2', path: 'attributions' })
 export class AttributionController {
@@ -24,6 +25,7 @@ export class AttributionController {
     return Result(attribution);
   }
 
+  @Public()
   @Get('/:attributionId')
   public async getAttribution(
     @TypedParam('attributionId') attributionId: Attribution['id'],

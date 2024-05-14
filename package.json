@@ -36,7 +36,9 @@
     "data-urls": "^5.0.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
+    "ethers": "^6.12.1",
     "express": "^4.19.2",
+    "jose": "^5.3.0",
     "lodash": "^4.17.21",
     "mime-types": "^2.1.35",
     "morgan": "^1.10.0",
@@ -57,6 +59,7 @@
     "@types/lodash": "^4.17.1",
     "@types/mime-types": "^2.1.4",
     "@types/morgan": "^1.9.9",
+    "@types/uuid": "^9.0.8",
     "drizzle-kit": "^0.20.18",
     "eslint": "^9.2.0",
     "nestia": "^5.3.0",
@@ -70,4 +73,3 @@
   },
   "packageManager": "pnpm@9.0.2+sha256.d6fc013639b81658ff175829ebb9435bcb89eff206769e460fd3ae27c2054df6"
 }
-

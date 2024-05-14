@@ -6,6 +6,7 @@ import { TypedBody, TypedParam } from '@nestia/core';
 import typia from 'typia';
 import { CreateCollection, UpdateCollection } from '~/models/collection.model';
 import { Result } from '~/shared/response';
+import { Public } from '../authentication';
 
 @Controller({ version: '2', path: 'collections' })
 export class CollectionController {
@@ -21,6 +22,7 @@ export class CollectionController {
     return Result(collection);
   }
 
+  @Public()
   @Get('/:collectionId')
   public async getCollection(
     @TypedParam('collectionId') collectionId: Collection['id'],
