@@ -6,15 +6,19 @@ import { TypedBody, TypedParam, TypedRoute } from '@nestia/core';
 import typia from 'typia';
 import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
 import { Result } from '~/shared/response';
-import { Public } from '../authentication';
+import { Address, Public } from '../authentication';
 
 @Controller({ version: '2', path: 'artifacts' })
 export class ArtifactController {
   constructor(private artifactService: ArtifactService) {}
 
   @Post()
-  public async createArtifact(@TypedBody() body: CreateArtifact) {
+  public async createArtifact(
+    @TypedBody() body: CreateArtifact,
+    @Address() address: string,
+  ) {
     typia.misc.prune(body);
+    (body as unknown as Artifact).creatorId = address;
     const artifact = await this.artifactService.createArtifact({
       value: body,
     });

@@ -1,9 +1,11 @@
 import { Artifact } from '~/modules/database/schema';
-import { SetRequired } from 'type-fest';
+import { Except, SetNonNullable, SetRequired } from 'type-fest';
 import typia from 'typia';
 
 export interface BaseArtifact
-  extends Partial<Omit<Artifact, 'createdAt' | 'updatedAt' | 'artifactHash'>> {}
+  extends Partial<
+    Except<Artifact, 'createdAt' | 'updatedAt' | 'artifactHash'>
+  > {}
 
 export interface Asset {
   //   data: string;
@@ -13,12 +15,9 @@ export interface Asset {
   name?: string;
 }
 export interface CreateArtifact
-  extends Omit<BaseArtifact, 'id' | 'creatorId' | 'createdAt' | 'updatedAt'> {
+  extends Except<SetNonNullable<BaseArtifact>, 'id' | 'creatorId'> {
   asset: Asset;
 }
 
 export interface UpdateArtifact
-  extends Omit<
-    BaseArtifact,
-    'id' | 'creatorId' | 'imageUrl' | 'createdAt' | 'updatedAt'
-  > {}
+  extends Except<BaseArtifact, 'id' | 'creatorId' | 'imageUrl'> {}

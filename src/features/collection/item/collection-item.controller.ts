@@ -10,7 +10,7 @@ import {
 } from '~/models/collection-item.model';
 import { Result } from '~/shared/response';
 import { CollectionItemService } from './collection-item.service';
-import { Public } from '../../authentication';
+import { Address, Public } from '../../authentication';
 
 export interface CreateCollectionItem
   extends SetOptional<RawCreateCollectionItem, 'collectionId'> {}
@@ -23,6 +23,7 @@ export class CollectionItemController {
   public async createCollectionItem(
     @TypedParam('collectionId') collectionId: Collection['id'],
     @TypedBody() body: CreateCollectionItem,
+    @Address() address: string,
   ) {
     typia.misc.prune(body);
     body.collectionId = collectionId;

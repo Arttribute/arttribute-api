@@ -13,6 +13,7 @@ export class AuthenticationService {
       message,
       signature,
     );
+    console.log({ recoveredAddress, address });
     if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
       throw new UnauthorizedException('Signature does not match!');
     }
@@ -30,9 +31,8 @@ export class AuthenticationService {
     })
       .setExpirationTime('10m')
       .setProtectedHeader({
-        alg: 'RS256',
+        alg: 'HS256',
         typ: 'JWT',
-        kid: process.env.SERVICE_NAME,
       })
       .sign(secret);
 

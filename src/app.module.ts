@@ -26,10 +26,10 @@ import { UserModule } from './features/user';
   ],
   controllers: [AppController],
   providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthenticationGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthenticationGuard,
+    },
     AppService,
   ],
 })

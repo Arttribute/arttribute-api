@@ -6,15 +6,19 @@ import { TypedBody, TypedParam } from '@nestia/core';
 import typia from 'typia';
 import { CreateCollection, UpdateCollection } from '~/models/collection.model';
 import { Result } from '~/shared/response';
-import { Public } from '../authentication';
+import { Address, Public } from '../authentication';
 
 @Controller({ version: '2', path: 'collections' })
 export class CollectionController {
   constructor(private collectionService: CollectionService) {}
 
   @Post()
-  public async createCollection(@TypedBody() body: CreateCollection) {
+  public async createCollection(
+    @TypedBody() body: CreateCollection,
+    @Address() address: string,
+  ) {
     typia.misc.prune(body);
+    (body as unknown as Collection).creatorId = address;
     const collection = await this.collectionService.createCollection({
       value: body,
     });
