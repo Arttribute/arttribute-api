@@ -92,12 +92,31 @@ export class CollectionItemService {
   }
 
   public async getCollectionItems(
-    props: {},
+    props: {} | { collectionId: string },
     options?: CollectionItemService.CollectionItemTableQuery,
   ) {
+    // const { collectionId } = props;
+    // if (typia.is<{ collectionId: string }>(props)) {
+    // 	const { collectionId } = props;
+    // 	options = {
+    // 		...options,
+    // 		where: (t, { }) => eq(t.collectionId, collectionId),
+    // 	};
+    // } else {
+
+    // }
     const collectionItemEntries =
       await this.databaseService.query.collectionItemTable.findMany({
         ...options,
+        where: (...args) =>
+          and(
+            typeof options?.where === 'function'
+              ? options.where(...args)
+              : options?.where,
+            typia.is<{ collectionId: string }>(props)
+              ? eq(collectionItemTable.collectionId, props.collectionId)
+              : undefined,
+          ),
       });
 
     return collectionItemEntries;

@@ -52,6 +52,18 @@ export class CollectionItemController {
   }
 
   @Public()
+  @Get('/:collectionId/items')
+  public async getCollectionItems(
+    @TypedParam('itemId') itemId: Artifact['id'],
+    @TypedParam('collectionId') collectionId: Collection['id'],
+  ) {
+    const collection = await this.collectionItemService.getCollectionItems({
+      collectionId,
+      artifactId: itemId,
+    });
+    return Result(collection);
+  }
+  @Public()
   @Get('/:collectionId/items/:itemId')
   public async getCollectionItem(
     @TypedParam('itemId') itemId: Artifact['id'],
