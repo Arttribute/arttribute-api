@@ -32,10 +32,17 @@ export class CollectionItemController {
         return _;
       });
       typia.misc.prune<Array<CreateCollectionItem>>(body);
-    } else {
-      body.collectionId = collectionId;
-      typia.misc.prune<CreateCollectionItem>(body);
+
+      const collections =
+        await this.collectionItemService.createCollectionItems({
+          value: body as RawCreateCollectionItem[],
+        });
+
+      return Result(collections);
     }
+
+    body.collectionId = collectionId;
+    typia.misc.prune<CreateCollectionItem>(body);
 
     const collection = await this.collectionItemService.createCollectionItem({
       value: body as RawCreateCollectionItem,
