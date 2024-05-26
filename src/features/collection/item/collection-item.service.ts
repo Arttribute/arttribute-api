@@ -10,7 +10,7 @@ import {
   and,
   eq,
 } from 'drizzle-orm';
-import { first } from 'lodash';
+import { first, map, uniq, uniqBy } from 'lodash';
 import typia from 'typia';
 import {
   CreateCollectionItem,
@@ -55,7 +55,13 @@ export class CollectionItemService {
   }
 
   public async createCollectionItems(props: { value: CreateCollectionItem[] }) {
-    const { value } = props;
+    let { value } = props;
+
+    value = map(uniqBy(value, 'itemId'), (_) => ({
+      ..._,
+      artifactId: _.itemId,
+    }));
+
     let collectionItemEntries = await this.databaseService
       .insert(collectionItemTable)
       .values(typia.misc.assertPrune<InsertCollectionItem>(value))

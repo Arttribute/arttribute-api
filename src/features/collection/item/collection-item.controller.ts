@@ -36,7 +36,6 @@ export class CollectionItemController {
       body.collectionId = collectionId;
       typia.misc.prune<CreateCollectionItem>(body);
     }
-    console.log(body);
 
     const collection = await this.collectionItemService.createCollectionItem({
       value: body as RawCreateCollectionItem,
