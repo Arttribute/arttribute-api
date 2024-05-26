@@ -64,7 +64,7 @@ export class CollectionItemService {
 
     let collectionItemEntries = await this.databaseService
       .insert(collectionItemTable)
-      .values(typia.misc.assertPrune<InsertCollectionItem>(value))
+      .values(typia.misc.assertPrune<InsertCollectionItem[]>(value))
       .returning();
 
     return collectionItemEntries;
