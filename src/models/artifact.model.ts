@@ -3,9 +3,7 @@ import { Except, SetNonNullable, SetRequired } from 'type-fest';
 import typia from 'typia';
 
 export interface BaseArtifact
-  extends Partial<
-    Except<Artifact, 'createdAt' | 'updatedAt' | 'artifactHash'>
-  > {}
+  extends Partial<Except<Artifact, 'createdAt' | 'updatedAt'>> {}
 
 export interface Asset {
   //   data: string;
