@@ -26,15 +26,17 @@ export class CollectionItemController {
     @TypedBody() body: CreateCollectionItem | CreateCollectionItem[],
     @Address() address: string,
   ) {
-    typia.misc.prune(body);
     if (Array.isArray(body)) {
       body = map(body, (_) => {
         _.collectionId = collectionId;
         return _;
       });
+      typia.misc.prune<Array<CreateCollectionItem>>(body);
     } else {
       body.collectionId = collectionId;
+      typia.misc.prune<CreateCollectionItem>(body);
     }
+    console.log(body);
 
     const collection = await this.collectionItemService.createCollectionItem({
       value: body as RawCreateCollectionItem,
