@@ -40,19 +40,28 @@ export class CollectionItemService {
 
   public async createCollectionItem(props: { value: CreateCollectionItem }) {
     const { value } = props;
-    let collectionItemEntry = await this.databaseService
-      .insert(collectionItemTable)
-      .values(typia.misc.assertPrune<InsertCollectionItem>(value))
-      .returning()
-      .then(first);
 
-    if (!collectionItemEntry) {
+    const collectionItem = await this.createCollectionItems({
+      value: [value],
+    }).then(first);
+
+    if (!collectionItem) {
       throw new InternalServerErrorException(
         'Error occurred while creating collection item',
       );
     }
 
-    return collectionItemEntry;
+    return collectionItem;
+  }
+
+  public async createCollectionItems(props: { value: CreateCollectionItem[] }) {
+    const { value } = props;
+    let collectionItemEntries = await this.databaseService
+      .insert(collectionItemTable)
+      .values(typia.misc.assertPrune<InsertCollectionItem>(value))
+      .returning();
+
+    return collectionItemEntries;
   }
 
   public async getCollectionItem(props: {

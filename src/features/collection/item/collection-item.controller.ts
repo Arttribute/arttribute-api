@@ -11,6 +11,7 @@ import {
 import { Result } from '~/shared/response';
 import { CollectionItemService } from './collection-item.service';
 import { Address, Public } from '../../authentication';
+import { map } from 'lodash';
 
 export interface CreateCollectionItem
   extends SetOptional<RawCreateCollectionItem, 'collectionId'> {}
@@ -22,11 +23,19 @@ export class CollectionItemController {
   @Post('/:collectionId/items')
   public async createCollectionItem(
     @TypedParam('collectionId') collectionId: Collection['id'],
-    @TypedBody() body: CreateCollectionItem,
+    @TypedBody() body: CreateCollectionItem | CreateCollectionItem[],
     @Address() address: string,
   ) {
     typia.misc.prune(body);
-    body.collectionId = collectionId;
+    if (Array.isArray(body)) {
+      body = map(body, (_) => {
+        _.collectionId = collectionId;
+        return _;
+      });
+    } else {
+      body.collectionId = collectionId;
+    }
+
     const collection = await this.collectionItemService.createCollectionItem({
       value: body as RawCreateCollectionItem,
     });
