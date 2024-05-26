@@ -95,16 +95,6 @@ export class CollectionItemService {
     props: {} | { collectionId: string },
     options?: CollectionItemService.CollectionItemTableQuery,
   ) {
-    // const { collectionId } = props;
-    // if (typia.is<{ collectionId: string }>(props)) {
-    // 	const { collectionId } = props;
-    // 	options = {
-    // 		...options,
-    // 		where: (t, { }) => eq(t.collectionId, collectionId),
-    // 	};
-    // } else {
-
-    // }
     const collectionItemEntries =
       await this.databaseService.query.collectionItemTable.findMany({
         ...options,
