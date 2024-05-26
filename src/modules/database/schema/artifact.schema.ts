@@ -32,7 +32,6 @@ export const artifactTable = pgTable('artifact', {
   creatorId: text('creator_id'),
 
   imageUrl: text('image_url'),
-  artifactHash: text('artifact_hash').notNull().unique(),
 
   whitelist: jsonb('whitelist')
     .$type<Array<string & tags.Format<'uuid'>>>()

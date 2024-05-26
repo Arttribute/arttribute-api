@@ -21,11 +21,13 @@ import parseDataURL from 'data-urls';
 import { DataURL } from 'data-urls';
 import { StorageService } from '~/modules/storage/storage.service';
 // import phash from 'sharp-phash';
-const phash = require('sharp-phash');
-import path from 'path';
 import mime from 'mime-types';
-import { PostgresError } from 'postgres';
+import path from 'path';
 import slug from 'slug';
+const got = import('got');
+// // @ts-expect-error
+// import { HTTPError } from 'got';
+// import FormData from 'form-data';
 
 type Tables = typeof tables;
 
@@ -40,6 +42,12 @@ module ArtifactService {
 
 @Injectable()
 export class ArtifactService {
+  similarityAPI = got.then(({ default: _ }) =>
+    _.extend({
+      prefixUrl: process.env.SIMILARITY_API_ENDPOINT,
+    }),
+  );
+
   constructor(
     private databaseService: DatabaseService,
     private storageService: StorageService,
@@ -59,7 +67,7 @@ export class ArtifactService {
     const dataBuffer = Buffer.from(data.body);
 
     const asset = new File(
-      [dataBuffer],
+      [data.body],
       value.asset.name || value.name || '', // Should add a string to the filename
       {
         type: value.asset.mimetype || data.mimeType.essence,
@@ -79,25 +87,33 @@ export class ArtifactService {
       throw new BadRequestException('Invalid asset mimetype');
     }
 
-    const [artifactHash] = await Promise.all([phash(dataBuffer), ,]);
+    // Generate phash
+    const formData = new FormData();
+
+    // const file = new fd.File(dataBuffer, asset.name, { type: asset.type });
+    formData.append('file', asset, asset.name);
+
+    const search = await this.similarityAPI.then((_) =>
+      _.post('search', {
+        body: formData as any,
+      }).json<{ image_id: string; distance: number; vector: string }>(),
+    );
+
+    console.log(search);
+
+    if (1 - search?.distance > 0.8) {
+      throw new BadRequestException('Artifact already exists');
+    }
 
     let artifactEntry = await this.databaseService
       .insert(artifactTable)
       .values(
         typia.misc.assertPrune<InsertArtifact>({
           ...value,
-          artifactHash,
         }),
       )
       .returning()
-      .then(first)
-      .catch((error: PostgresError) => {
-        console.log(error);
-        if (error.constraint_name == 'artifact_artifact_hash_unique') {
-          throw new BadRequestException('Artifact already exists');
-        }
-      });
-
+      .then(first);
     if (!artifactEntry) {
       throw new InternalServerErrorException(
         'Error occurred while creating artifact',
@@ -108,12 +124,25 @@ export class ArtifactService {
       join(
         compact([slug(path.basename(asset.name, extension)), artifactEntry.id]),
         '_',
-      ) +
-      '.' +
-      extension;
+      ) + extension;
 
-    await this.storageService.from('artifacts').upload(filename, asset, {
-      upsert: false,
+    formData.set('image_id', artifactEntry.id);
+
+    await Promise.all([
+      this.similarityAPI.then((_) =>
+        _.post('register', {
+          body: formData as any,
+          searchParams: { image_id: artifactEntry.id },
+        }).json(),
+      ),
+      this.storageService.from('artifacts').upload(filename, asset, {
+        upsert: false,
+      }),
+    ]).catch(async (err) => {
+      await this.databaseService
+        .delete(artifactTable)
+        .where(eq(artifactTable.id, artifactEntry.id));
+      throw err;
     });
 
     // If an error occurs in upload, we need to delete the artifact entry
