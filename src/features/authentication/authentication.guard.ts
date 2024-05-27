@@ -27,7 +27,7 @@ export class AuthenticationGuard implements CanActivate {
     ]);
 
     if (isPublic) {
-      console.log('Authentication Level:	Force Public');
+      console.log('Authentication Level:	Public');
       return true;
     }
 

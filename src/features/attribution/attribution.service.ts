@@ -55,18 +55,18 @@ export class AttributionService {
   public async getAttribution(props: { id: string }) {
     const { id } = props;
 
-    const attributionEntry = await this.getAttributions(
+    const attribution = await this.getAttributions(
       {},
       {
         where: (t, {}) => and(eq(t.id, id)),
       },
     ).then(first);
 
-    if (!attributionEntry) {
+    if (!attribution) {
       throw new NotFoundException(`Attribution with id: ${id} not found`);
     }
 
-    return attributionEntry;
+    return attribution;
   }
 
   public async getAttributions(
