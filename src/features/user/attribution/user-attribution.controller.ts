@@ -19,6 +19,7 @@ export class UserAttributionController {
     private userAttributionService: UserAttributionService,
   ) {}
 
+  @Public()
   @Get('me/attributions')
   public async getAttributions(@Address() address: string) {
     const userId = address;
