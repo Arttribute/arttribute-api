@@ -2,6 +2,7 @@ import { TypedParam } from '@nestia/core';
 import { Controller, Get } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { AttributionService } from '~/features/attribution/attribution.service';
+import { Public } from '~/features/authentication';
 import { Attribution, attributionTable } from '~/modules/database/schema';
 import { Result } from '~/shared/response';
 
@@ -9,6 +10,7 @@ import { Result } from '~/shared/response';
 export class UserAttributionController {
   constructor(private attributionService: AttributionService) {}
 
+  @Public()
   @Get()
   public async getAttributions(
     @TypedParam('userId') userId: NonNullable<Attribution['attributorId']>,
