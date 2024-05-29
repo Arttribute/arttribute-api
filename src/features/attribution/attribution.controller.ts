@@ -9,14 +9,20 @@ import {
   UpdateAttribution,
 } from '~/models/attribution.model';
 import { Result } from '~/shared/response';
+import { Address, Public } from '../authentication';
 
 @Controller({ version: '2', path: 'attributions' })
 export class AttributionController {
   constructor(private attributionService: AttributionService) {}
 
   @Post()
-  public async createAttribution(@TypedBody() body: CreateAttribution) {
+  public async createAttribution(
+    @TypedBody() body: CreateAttribution,
+    @Address() address: string,
+  ) {
     typia.misc.prune(body);
+    (body as unknown as Attribution).attributorId = address;
+
     const attribution = await this.attributionService.createAttribution({
       value: body,
     });
@@ -24,6 +30,7 @@ export class AttributionController {
     return Result(attribution);
   }
 
+  @Public()
   @Get('/:attributionId')
   public async getAttribution(
     @TypedParam('attributionId') attributionId: Attribution['id'],

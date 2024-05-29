@@ -1,0 +1,1 @@
+ALTER TABLE "artifact" ALTER COLUMN "artifact_hash" DROP NOT NULL;

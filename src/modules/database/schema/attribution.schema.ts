@@ -28,13 +28,13 @@ export const attributionTable = pgTable('attribution', {
   expiresAt: timestamp('expires_at', { withTimezone: true }),
 
   //   createdBy: uuid('created_by'),
-  createdAt: timestamp('created_at', { withTimezone: true }).default(
-    sql`timezone('utc', now())`,
-  ),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .default(sql`timezone('utc', now())`)
+    .notNull(),
   //   updatedBy: uuid('updated_by'),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).default(
-    sql`timezone('utc', now())`,
-  ),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .default(sql`timezone('utc', now())`)
+    .notNull(),
 });
 
 export type Attribution = InferSelectModel<typeof attributionTable>;

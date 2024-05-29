@@ -10,7 +10,7 @@ import {
   and,
   eq,
 } from 'drizzle-orm';
-import { first } from 'lodash';
+import { first, map, uniq, uniqBy } from 'lodash';
 import typia from 'typia';
 import {
   CreateCollectionItem,
@@ -40,19 +40,34 @@ export class CollectionItemService {
 
   public async createCollectionItem(props: { value: CreateCollectionItem }) {
     const { value } = props;
-    let collectionItemEntry = await this.databaseService
-      .insert(collectionItemTable)
-      .values(typia.misc.assertPrune<InsertCollectionItem>(value))
-      .returning()
-      .then(first);
 
-    if (!collectionItemEntry) {
+    const collectionItem = await this.createCollectionItems({
+      value: [value],
+    }).then(first);
+
+    if (!collectionItem) {
       throw new InternalServerErrorException(
         'Error occurred while creating collection item',
       );
     }
 
-    return collectionItemEntry;
+    return collectionItem;
+  }
+
+  public async createCollectionItems(props: { value: CreateCollectionItem[] }) {
+    let { value } = props;
+
+    value = map(uniqBy(value, 'itemId'), (_) => ({
+      ..._,
+      artifactId: _.itemId,
+    }));
+
+    let collectionItemEntries = await this.databaseService
+      .insert(collectionItemTable)
+      .values(typia.misc.assertPrune<Array<InsertCollectionItem>>(value))
+      .returning();
+
+    return collectionItemEntries;
   }
 
   public async getCollectionItem(props: {
@@ -77,12 +92,21 @@ export class CollectionItemService {
   }
 
   public async getCollectionItems(
-    props: {},
+    props: {} | { collectionId: string },
     options?: CollectionItemService.CollectionItemTableQuery,
   ) {
     const collectionItemEntries =
       await this.databaseService.query.collectionItemTable.findMany({
         ...options,
+        where: (...args) =>
+          and(
+            typeof options?.where === 'function'
+              ? options.where(...args)
+              : options?.where,
+            typia.is<{ collectionId: string }>(props)
+              ? eq(collectionItemTable.collectionId, props.collectionId)
+              : undefined,
+          ),
       });
 
     return collectionItemEntries;
@@ -92,13 +116,13 @@ export class CollectionItemService {
     props: {
       collectionId: string;
       artifactId: string;
-      value: UpdateCollectionItem;
+      delta: UpdateCollectionItem;
     },
     options?: CollectionItemService.CollectionItemTableQuery & {
       where?: SQL<unknown>;
     },
   ) {
-    const { artifactId, collectionId, value } = props;
+    const { artifactId, collectionId, delta } = props;
     const {
       where: condition = and(
         eq(collectionItemTable.collectionId, collectionId),
@@ -108,7 +132,7 @@ export class CollectionItemService {
 
     const collectionItemEntry = await this.databaseService
       .update(collectionItemTable)
-      .set(typia.misc.assertPrune<Partial<InsertCollectionItem>>(value))
+      .set(typia.misc.assertPrune<Partial<InsertCollectionItem>>(delta))
       .where(condition)
       .returning()
       .then(first);

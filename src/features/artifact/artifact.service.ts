@@ -10,8 +10,9 @@ import {
   SQL,
   and,
   eq,
+  inArray,
 } from 'drizzle-orm';
-import { first } from 'lodash';
+import { compact, first, join, map } from 'lodash';
 import typia from 'typia';
 import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
 import { InsertArtifact, artifactTable } from '~/modules/database/schema';
@@ -21,9 +22,13 @@ import parseDataURL from 'data-urls';
 import { DataURL } from 'data-urls';
 import { StorageService } from '~/modules/storage/storage.service';
 // import phash from 'sharp-phash';
-const phash = require('sharp-phash');
-import { extension } from 'mime-types';
-import { PostgresError } from 'postgres';
+import mime from 'mime-types';
+import path from 'path';
+import slug from 'slug';
+const got = import('got');
+// // @ts-expect-error
+// import { HTTPError } from 'got';
+// import FormData from 'form-data';
 
 type Tables = typeof tables;
 
@@ -38,6 +43,12 @@ module ArtifactService {
 
 @Injectable()
 export class ArtifactService {
+  private similarityAPI = got.then(({ default: _ }) =>
+    _.extend({
+      prefixUrl: process.env.SIMILARITY_API_ENDPOINT,
+    }),
+  );
+
   constructor(
     private databaseService: DatabaseService,
     private storageService: StorageService,
@@ -54,56 +65,187 @@ export class ArtifactService {
       );
     }
 
-    const dataBuffer = Buffer.from(data.body);
-
     const asset = new File(
-      [dataBuffer],
-      value.asset.name || value.name, // Should add a string to the filename
+      [data.body],
+      value.asset.name || value.name || '', // Should add a string to the filename
       {
         type: value.asset.mimetype || data.mimeType.essence,
       },
     );
 
-    const filename = `${asset.name}.${extension(asset.type)}`;
+    const mimetypeFromName = mime.lookup(asset.name);
 
-    const [artifactHash] = await Promise.all([
-      phash(dataBuffer),
-      this.storageService.storage.from('artifacts').upload(filename, asset, {
-        upsert: false,
-      }),
-    ]);
+    let extension;
+    if (mimetypeFromName && mimetypeFromName == asset.type) {
+      extension = path.extname(asset.name);
+    } else {
+      extension = '.' + mime.extension(asset.type);
+    }
 
-    const {
-      data: { publicUrl },
-    } = await this.storageService.storage
-      .from('artifacts')
-      .getPublicUrl(filename);
+    if (!extension) {
+      throw new BadRequestException('Invalid asset mimetype');
+    }
+
+    // Generate phash
+    const formData = new FormData();
+
+    formData.append('file', asset, asset.name);
+
+    const search = await this.similarityAPI.then((_) =>
+      _.post('search', {
+        body: formData as any,
+      }).json<{ image_id: string; distance: number; vector: string }>(),
+    );
+
+    console.log(search);
+
+    if (1 - search?.distance > 0.8) {
+      throw new BadRequestException('Artifact already exists');
+    }
 
     let artifactEntry = await this.databaseService
       .insert(artifactTable)
       .values(
         typia.misc.assertPrune<InsertArtifact>({
           ...value,
-          imageUrl: publicUrl,
-          artifactHash,
         }),
       )
       .returning()
-      .then(first)
-      .catch((error: PostgresError) => {
-        console.log(error);
-        if (error.constraint_name == 'artifact_artifact_hash_unique') {
-          throw new BadRequestException('Artifact already exists');
-        }
-      });
-
+      .then(first);
     if (!artifactEntry) {
       throw new InternalServerErrorException(
         'Error occurred while creating artifact',
       );
     }
 
-    return artifactEntry;
+    const filename =
+      join(
+        compact([slug(path.basename(asset.name, extension)), artifactEntry.id]),
+        '_',
+      ) + extension;
+
+    formData.set('image_id', artifactEntry.id);
+
+    await Promise.all([
+      this.similarityAPI.then((_) =>
+        _.post('register', {
+          body: formData as any,
+          searchParams: { image_id: artifactEntry.id },
+        }).json(),
+      ),
+      this.storageService.from('artifacts').upload(filename, asset, {
+        upsert: false,
+      }),
+    ]).catch(async (err) => {
+      await this.databaseService
+        .delete(artifactTable)
+        .where(eq(artifactTable.id, artifactEntry.id));
+      throw err;
+    });
+
+    // If an error occurs in upload, we need to delete the artifact entry
+
+    const {
+      data: { publicUrl },
+    } = this.storageService.from('artifacts').getPublicUrl(filename);
+
+    const updatedArtifactEntry = await this.databaseService
+      .update(artifactTable)
+      .set(
+        typia.misc.assertPrune<Partial<InsertArtifact>>({
+          imageUrl: publicUrl,
+        }),
+      )
+      .where(eq(artifactTable.id, artifactEntry?.id))
+      .returning()
+      .then(first);
+
+    return updatedArtifactEntry;
+  }
+
+  public async checkArtifacts(props: {
+    value: Array<CreateArtifact>;
+    userId: string;
+  }) {
+    const { value, userId } = props;
+
+    const artifactChecks = await Promise.allSettled(
+      map(value, async (_) => {
+        const data = parseDataURL(_.asset.data);
+        if (!data) {
+          throw new InternalServerErrorException(
+            'Error occurred while parsing asset',
+          );
+        }
+        const asset = new File(
+          [data.body],
+          _.asset.name || _.name || '', // Should add a string to the filename
+          {
+            type: _.asset.mimetype || data.mimeType.essence,
+          },
+        );
+
+        const formData = new FormData();
+
+        // const file = new fd.File(dataBuffer, asset.name, { type: asset.type });
+        formData.append('file', asset, asset.name);
+
+        const search = await this.similarityAPI.then((_) =>
+          _.post('search', {
+            body: formData as any,
+          }).json<{ image_id: string; distance: number; vector: string }>(),
+        );
+
+        if (1 - search?.distance > 0.8) {
+          // Would be better with subqueries
+          const artifactAttribution =
+            await this.databaseService.query.attributionTable.findFirst({
+              where: (t, {}) =>
+                and(
+                  eq(t.artifactId, search.image_id),
+                  eq(t.attributorId, userId),
+                ),
+            });
+
+          if (artifactAttribution) {
+            return artifactAttribution;
+          }
+
+          const collectionItemsWithItem =
+            await this.databaseService.query.collectionItemTable.findMany({
+              where: (t, {}) => eq(t.artifactId, search.image_id),
+            });
+
+          if (collectionItemsWithItem.length > 0) {
+            const artifactAttribution =
+              await this.databaseService.query.attributionTable.findFirst({
+                where: (t, {}) =>
+                  and(
+                    inArray(
+                      t.collectionId,
+                      map(collectionItemsWithItem, 'collectionId'),
+                    ),
+                    eq(t.attributorId, userId),
+                  ),
+              });
+
+            if (artifactAttribution) {
+              return artifactAttribution;
+            }
+          }
+
+          return false;
+        }
+        return true;
+      }),
+    );
+
+    return map(artifactChecks, (_) => {
+      if (_.status == 'fulfilled') {
+        return _.value;
+      }
+      return false;
+    });
   }
 
   public async getArtifact(props: { id: string }) {
