@@ -25,6 +25,18 @@ export class ArtifactController {
     return Result(artifact);
   }
 
+  @Post('check')
+  public async checkArtifacts(
+    @TypedBody() body: Array<CreateArtifact>,
+    @Address() address: string,
+  ) {
+    const checkedArtifacts = await this.artifactService.checkArtifacts({
+      value: body,
+      userId: address,
+    });
+    return Result(checkedArtifacts);
+  }
+
   @Public()
   @Get('/:artifactId')
   public async getArtifact(

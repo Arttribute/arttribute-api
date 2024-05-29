@@ -10,8 +10,9 @@ import {
   SQL,
   and,
   eq,
+  inArray,
 } from 'drizzle-orm';
-import { compact, first, join } from 'lodash';
+import { compact, first, join, map } from 'lodash';
 import typia from 'typia';
 import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
 import { InsertArtifact, artifactTable } from '~/modules/database/schema';
@@ -42,7 +43,7 @@ module ArtifactService {
 
 @Injectable()
 export class ArtifactService {
-  similarityAPI = got.then(({ default: _ }) =>
+  private similarityAPI = got.then(({ default: _ }) =>
     _.extend({
       prefixUrl: process.env.SIMILARITY_API_ENDPOINT,
     }),
@@ -63,8 +64,6 @@ export class ArtifactService {
         'Error occurred while parsing asset',
       );
     }
-
-    const dataBuffer = Buffer.from(data.body);
 
     const asset = new File(
       [data.body],
@@ -90,7 +89,6 @@ export class ArtifactService {
     // Generate phash
     const formData = new FormData();
 
-    // const file = new fd.File(dataBuffer, asset.name, { type: asset.type });
     formData.append('file', asset, asset.name);
 
     const search = await this.similarityAPI.then((_) =>
@@ -163,6 +161,91 @@ export class ArtifactService {
       .then(first);
 
     return updatedArtifactEntry;
+  }
+
+  public async checkArtifacts(props: {
+    value: Array<CreateArtifact>;
+    userId: string;
+  }) {
+    const { value, userId } = props;
+
+    const artifactChecks = await Promise.allSettled(
+      map(value, async (_) => {
+        const data = parseDataURL(_.asset.data);
+        if (!data) {
+          throw new InternalServerErrorException(
+            'Error occurred while parsing asset',
+          );
+        }
+        const asset = new File(
+          [data.body],
+          _.asset.name || _.name || '', // Should add a string to the filename
+          {
+            type: _.asset.mimetype || data.mimeType.essence,
+          },
+        );
+
+        const formData = new FormData();
+
+        // const file = new fd.File(dataBuffer, asset.name, { type: asset.type });
+        formData.append('file', asset, asset.name);
+
+        const search = await this.similarityAPI.then((_) =>
+          _.post('search', {
+            body: formData as any,
+          }).json<{ image_id: string; distance: number; vector: string }>(),
+        );
+
+        if (1 - search?.distance > 0.8) {
+          // Would be better with subqueries
+          const artifactAttribution =
+            await this.databaseService.query.attributionTable.findFirst({
+              where: (t, {}) =>
+                and(
+                  eq(t.artifactId, search.image_id),
+                  eq(t.attributorId, userId),
+                ),
+            });
+
+          if (artifactAttribution) {
+            return artifactAttribution;
+          }
+
+          const collectionItemsWithItem =
+            await this.databaseService.query.collectionItemTable.findMany({
+              where: (t, {}) => eq(t.artifactId, search.image_id),
+            });
+
+          if (collectionItemsWithItem.length > 0) {
+            const artifactAttribution =
+              await this.databaseService.query.attributionTable.findFirst({
+                where: (t, {}) =>
+                  and(
+                    inArray(
+                      t.collectionId,
+                      map(collectionItemsWithItem, 'collectionId'),
+                    ),
+                    eq(t.attributorId, userId),
+                  ),
+              });
+
+            if (artifactAttribution) {
+              return artifactAttribution;
+            }
+          }
+
+          return false;
+        }
+        return true;
+      }),
+    );
+
+    return map(artifactChecks, (_) => {
+      if (_.status == 'fulfilled') {
+        return _.value;
+      }
+      return false;
+    });
   }
 
   public async getArtifact(props: { id: string }) {
