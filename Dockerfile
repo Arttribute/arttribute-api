@@ -1,4 +1,4 @@
-FROM node:20.11.1
+FROM node:20.11.1 as build
 
 WORKDIR /app
 
@@ -10,7 +10,8 @@ RUN npm run build
 FROM node:20.11.1
 WORKDIR /app
 COPY package.json .
-RUN npm install --only=production
-COPY --from=0 /app/dist ./dist
-RUN npm run build
+RUN npm install 
+COPY --from=build /app/dist ./dist
+
+
 CMD npm run start:prod
