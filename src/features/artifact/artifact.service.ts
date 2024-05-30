@@ -14,7 +14,11 @@ import {
 } from 'drizzle-orm';
 import { compact, first, join, map } from 'lodash';
 import typia from 'typia';
-import { CreateArtifact, UpdateArtifact } from '~/models/artifact.model';
+import {
+  CreateArtifact,
+  UpdateArtifact,
+  ArtifactCheckResult,
+} from '~/models/artifact.model';
 import { InsertArtifact, artifactTable } from '~/modules/database/schema';
 import { DatabaseService } from '~/modules/database/database.service';
 import * as tables from '~/modules/database/schema';
@@ -99,7 +103,7 @@ export class ArtifactService {
 
     console.log(search);
 
-    if (1 - search?.distance > 0.8) {
+    if (1 - search?.distance > 0.85) {
       throw new BadRequestException('Artifact already exists');
     }
 
@@ -166,11 +170,11 @@ export class ArtifactService {
   public async checkArtifacts(props: {
     value: Array<CreateArtifact>;
     userId: string;
-  }) {
+  }): Promise<ArtifactCheckResult[]> {
     const { value, userId } = props;
 
     const artifactChecks = await Promise.allSettled(
-      map(value, async (_) => {
+      value.map(async (_) => {
         const data = parseDataURL(_.asset.data);
         if (!data) {
           throw new InternalServerErrorException(
@@ -187,7 +191,6 @@ export class ArtifactService {
 
         const formData = new FormData();
 
-        // const file = new fd.File(dataBuffer, asset.name, { type: asset.type });
         formData.append('file', asset, asset.name);
 
         const search = await this.similarityAPI.then((_) =>
@@ -197,7 +200,6 @@ export class ArtifactService {
         );
 
         if (1 - search?.distance > 0.8) {
-          // Would be better with subqueries
           const artifactAttribution =
             await this.databaseService.query.attributionTable.findFirst({
               where: (t, {}) =>
@@ -208,7 +210,10 @@ export class ArtifactService {
             });
 
           if (artifactAttribution) {
-            return artifactAttribution;
+            return {
+              attribution: artifactAttribution,
+              imageId: search.image_id,
+            };
           }
 
           const collectionItemsWithItem =
@@ -230,21 +235,24 @@ export class ArtifactService {
               });
 
             if (artifactAttribution) {
-              return artifactAttribution;
+              return {
+                attribution: artifactAttribution,
+                imageId: search.image_id,
+              };
             }
           }
 
-          return false;
+          return { attribution: false, imageId: search.image_id };
         }
-        return true;
+        return { attribution: true, imageId: null };
       }),
     );
 
-    return map(artifactChecks, (_) => {
-      if (_.status == 'fulfilled') {
-        return _.value;
+    return artifactChecks.map((_) => {
+      if (_.status === 'fulfilled') {
+        return _.value as ArtifactCheckResult;
       }
-      return false;
+      return { attribution: false, imageId: null } as ArtifactCheckResult;
     });
   }
 
@@ -308,3 +316,4 @@ export class ArtifactService {
     return;
   }
 }
+

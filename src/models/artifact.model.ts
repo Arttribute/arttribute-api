@@ -19,3 +19,9 @@ export interface CreateArtifact
 
 export interface UpdateArtifact
   extends Except<BaseArtifact, 'id' | 'creatorId' | 'imageUrl'> {}
+
+export interface ArtifactCheckResult {
+  attribution: boolean | any;
+  imageId: string | null;
+}
+
