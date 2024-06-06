@@ -17,7 +17,12 @@ export class UserArtifactController {
   ) {
     const artifacts = await this.artifactService.getArtifacts(
       {},
-      { where: eq(artifactTable.creatorId, userId) },
+      {
+        where: eq(artifactTable.creatorId, userId),
+        orderBy(fields, { desc }) {
+          return desc(fields.createdAt);
+        },
+      },
     );
     return Result(artifacts);
   }
