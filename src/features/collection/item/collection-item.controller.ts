@@ -23,24 +23,9 @@ export class CollectionItemController {
   @Post('/:collectionId/items')
   public async createCollectionItem(
     @TypedParam('collectionId') collectionId: Collection['id'],
-    @TypedBody() body: CreateCollectionItem | CreateCollectionItem[],
+    @TypedBody() body: CreateCollectionItem,
     @Address() address: string,
   ) {
-    if (Array.isArray(body)) {
-      body = map(body, (_) => {
-        _.collectionId = collectionId;
-        return _;
-      });
-      typia.misc.prune<Array<CreateCollectionItem>>(body);
-
-      const collections =
-        await this.collectionItemService.createCollectionItems({
-          value: body as RawCreateCollectionItem[],
-        });
-
-      return Result(collections);
-    }
-
     body.collectionId = collectionId;
     typia.misc.prune<CreateCollectionItem>(body);
 
@@ -49,6 +34,25 @@ export class CollectionItemController {
     });
 
     return Result(collection);
+  }
+
+  @Post('/:collectionId/items/batch')
+  public async createCollectionItems(
+    @TypedParam('collectionId') collectionId: Collection['id'],
+    @TypedBody() body: Array<CreateCollectionItem>,
+    @Address() address: string,
+  ) {
+    body = map(body, (_) => {
+      _.collectionId = collectionId;
+      return _;
+    });
+    typia.misc.prune<Array<CreateCollectionItem>>(body);
+
+    const collections = await this.collectionItemService.createCollectionItems({
+      value: body as RawCreateCollectionItem[],
+    });
+
+    return Result(collections);
   }
 
   @Public()

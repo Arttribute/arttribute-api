@@ -160,7 +160,7 @@ export class ArtifactService {
           imageUrl: publicUrl,
         }),
       )
-      .where(eq(artifactTable.id, artifactEntry?.id))
+      .where(eq(artifactTable.id, artifactEntry.id))
       .returning()
       .then(first);
 
@@ -316,4 +316,3 @@ export class ArtifactService {
     return;
   }
 }
-

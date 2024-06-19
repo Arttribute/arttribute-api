@@ -13,6 +13,7 @@ export class AuthenticationService {
       message,
       signature,
     );
+    //   jwtValidate(message, {secret, isExpired: isLocal ?false: undefined });
     console.log({ recoveredAddress, address });
     if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
       throw new UnauthorizedException('Signature does not match!');

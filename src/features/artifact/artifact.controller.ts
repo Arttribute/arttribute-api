@@ -38,20 +38,6 @@ export class ArtifactController {
   }
 
   @Public()
-  @Get()
-  public async getArtifacts() {
-    const artifacts = await this.artifactService.getArtifacts(
-      {},
-      {
-        orderBy(fields, { desc }) {
-          return desc(fields.createdAt);
-        },
-      },
-    );
-    return Result(artifacts);
-  }
-
-  @Public()
   @Get('/:artifactId')
   public async getArtifact(
     @TypedParam('artifactId') artifactId: Artifact['id'],
