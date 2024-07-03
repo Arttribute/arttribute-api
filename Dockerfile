@@ -1,17 +1,31 @@
-FROM node:20.11.1 as build
+FROM node:20.15-alpine as build
 
-WORKDIR /app
+RUN corepack enable
 
-COPY package*.json .
-RUN npm install
+
+FROM base as builder
+
+WORKDIR /home/node/app
+COPY package*.json ./
 COPY . .
-RUN npm run build
 
-FROM node:20.11.1
-WORKDIR /app
-COPY package.json .
-RUN npm install 
-COPY --from=build /app/dist ./dist
+RUN npm install
+RUN npm build
 
 
-CMD npm run start:prod
+FROM base as runtime
+
+ENV NODE_ENV=production
+
+WORKDIR /home/node/app
+COPY package*.json  ./
+# COPY pnpm-lock.yaml ./
+
+RUN npm install --production
+
+COPY --from=builder /home/node/app/dist ./dist
+COPY --from=builder /home/node/app/build ./build
+
+EXPOSE 8080
+
+CMD ["node", "dist/nest/main.js"]
