@@ -10,7 +10,7 @@ COPY package*.json ./
 COPY . .
 
 RUN npm install
-RUN npm build
+RUN npm run build
 
 
 FROM base as runtime
