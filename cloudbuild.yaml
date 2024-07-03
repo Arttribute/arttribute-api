@@ -5,7 +5,7 @@ steps:
       [
         'build',
         '-t',
-        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute-api/api:$SHORT_SHA',
+        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute/arttribute-api:$SHORT_SHA',
         '-f',
         './Dockerfile',
         '.',
@@ -16,15 +16,15 @@ steps:
     args:
       [
         'tag',
-        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute-api/api:$SHORT_SHA',
-        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute-api/api:prod',
+        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute/arttribute-api:$SHORT_SHA',
+        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute/arttribute-api:prod',
       ]
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'push',
-        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute-api/api',
+        'europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute/arttribute-api',
         '--all-tags',
       ]
 
@@ -35,10 +35,10 @@ steps:
     args:
       - run
       - deploy
-      - api
+      - arttribute-api-prod
       - --region=europe-west1
       - --platform=managed
-      - --image=europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute-api/api:prod
+      - --image=europe-west1-docker.pkg.dev/$PROJECT_ID/arttribute/arttribute-api:prod
 
     timeout: 1800s
 # options:
