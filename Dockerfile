@@ -21,7 +21,8 @@ WORKDIR /home/node/app
 COPY package*.json  ./
 # COPY pnpm-lock.yaml ./
 
-RUN npm install --production
+# Production packages only and ignore running the prepare script
+RUN npm install --omit=dev --ignore-scripts
 
 COPY --from=builder /home/node/app/dist ./dist
 COPY --from=builder /home/node/app/build ./build
