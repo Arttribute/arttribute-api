@@ -25,7 +25,6 @@ COPY package*.json  ./
 RUN npm install --omit=dev --ignore-scripts
 
 COPY --from=builder /home/node/app/dist ./dist
-COPY --from=builder /home/node/app/build ./build
 
 EXPOSE 8080
 
