@@ -244,7 +244,7 @@ export class ArtifactService {
 
           return { attribution: false, imageId: search.image_id };
         }
-        return { attribution: false, imageId: search.image_id };
+        return { attribution: false, imageId: null };
       }),
     );
 
