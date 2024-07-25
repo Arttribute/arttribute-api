@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'express';
 import morgan from 'morgan';
 import { AppModule } from './app.module';
-import { SwaggerModule } from '@nestjs/swagger';
 
 export async function nestServer() {
   const app = await NestFactory.create(AppModule);

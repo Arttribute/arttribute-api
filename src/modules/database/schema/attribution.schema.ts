@@ -32,9 +32,7 @@ export const attributionTable = pgTable('attribution', {
     .default(sql`timezone('utc', now())`)
     .notNull(),
   //   updatedBy: uuid('updated_by'),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .default(sql`timezone('utc', now())`)
-    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }),
 });
 
 export type Attribution = InferSelectModel<typeof attributionTable>;

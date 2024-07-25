@@ -2,11 +2,16 @@ import { v4 } from 'uuid';
 import { SignJWT } from 'jose';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ethers } from 'ethers';
+import { UserService } from '../user/user.service';
 // import { ethPersonalSignRecoverPublicKey } from '@polybase/eth';
 
 @Injectable()
 export class AuthenticationService {
-  constructor() {}
+  constructor(private userService: UserService) {}
+
+  validateUser(email: string) {
+    this.userService.upsertUser({ value: { email } });
+  }
 
   validateSignature(address: string, message: string, signature: string) {
     const { address: recoveredAddress } = this.getSignerData(

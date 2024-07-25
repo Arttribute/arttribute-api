@@ -35,6 +35,19 @@ export class AuthenticationGuard implements CanActivate {
     let message = get(req.headers, 'x-authentication-message');
     let signature = get(req.headers, 'x-authentication-signature');
 
+    let email = get(req.headers, 'x-authentication-email');
+
+    if ((isObject(email) && (email = first(email))) || email) {
+      (req as any).email = email;
+      const validUser = this.authenticationService.validateUser(email);
+      const isValid = Boolean(validUser);
+
+      if (isValid) {
+        (req as any).address = validUser;
+        return true;
+      }
+    }
+
     try {
       if ((isObject(address) && (address = first(address))) || !address) {
         throw new BadRequestException(

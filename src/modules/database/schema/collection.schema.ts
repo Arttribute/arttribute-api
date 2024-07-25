@@ -34,9 +34,7 @@ export const collectionTable = pgTable('collection', {
     .default(sql`timezone('utc', now())`)
     .notNull(),
   //   updatedBy: uuid('updated_by'),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .default(sql`timezone('utc', now())`)
-    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }),
 });
 
 export type Collection = InferSelectModel<typeof collectionTable>;

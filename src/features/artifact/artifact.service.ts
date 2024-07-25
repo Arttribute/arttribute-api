@@ -25,7 +25,6 @@ import * as tables from '~/modules/database/schema';
 import parseDataURL from 'data-urls';
 import { DataURL } from 'data-urls';
 import { StorageService } from '~/modules/storage/storage.service';
-// import phash from 'sharp-phash';
 import mime from 'mime-types';
 import path from 'path';
 import slug from 'slug';
