@@ -9,8 +9,9 @@ import {
   attributionTable,
 } from '~/modules/database/schema';
 import { Result } from '~/shared/response';
-import { Address, Public } from '../../authentication';
+import { Address, Email, Public } from '../../authentication';
 import { UserAttributionService } from './user-attribution.service';
+import { UserId } from '~/features/authentication/decorators/userId.decorator';
 
 @Controller({ version: '2', path: 'users' })
 export class UserAttributionController {
@@ -21,13 +22,9 @@ export class UserAttributionController {
 
   @Public()
   @Get('me/attributions')
-  public async getAttributions(@Address() address: string) {
-    const userId = address;
-    const attributions = await this.attributionService.getAttributions(
-      {},
-      { where: eq(attributionTable.attributorId, userId) },
-    );
-    return Result(attributions);
+  public async getAttributions(@UserId() userId: string) {
+    // const userId = address;
+    return await this.getAttributionsByUserId(userId);
   }
 
   @Public()

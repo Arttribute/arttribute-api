@@ -39,11 +39,14 @@ export class AuthenticationGuard implements CanActivate {
 
     if ((isObject(email) && (email = first(email))) || email) {
       (req as any).email = email;
-      const validUser = this.authenticationService.validateUser(email);
+      const validUser = await this.authenticationService.validateUser(email);
       const isValid = Boolean(validUser);
 
+      console.log({ validUser });
+
       if (isValid) {
-        (req as any).address = validUser;
+        (req as any).email = validUser?.email;
+        (req as any).userId = validUser?.id;
         return true;
       }
     }
@@ -68,16 +71,17 @@ export class AuthenticationGuard implements CanActivate {
         );
       }
 
-      const validAddress = this.authenticationService.validateSignature(
+      const validUser = await this.authenticationService.validateSignature(
         address,
         message,
         signature,
       );
 
-      const isValid = Boolean(validAddress);
+      const isValid = Boolean(validUser);
 
       if (isValid) {
-        (req as any).address = validAddress;
+        (req as any).address = validUser?.web3Address;
+        (req as any).userId = validUser?.id;
         return true;
       }
       throw new UnauthorizedException();

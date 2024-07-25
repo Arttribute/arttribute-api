@@ -8,7 +8,7 @@ export const userTable = pgTable('user', {
     .primaryKey()
     .$type<string & tags.Format<'uuid'>>(),
 
-  email: text('email').unique(),
+  email: text('email').unique().$type<string & tags.Format<'email'>>(),
   web3Address: text('web3_address').unique(),
 
   //   createdBy: uuid('created_by'),

@@ -10,7 +10,12 @@ export class AuthenticationService {
   constructor(private userService: UserService) {}
 
   validateUser(email: string) {
-    this.userService.upsertUser({ value: { email } });
+    const user = this.userService
+      .upsertUser({ value: { email } })
+      .then((user) => {
+        return user || this.userService.getUser({ email });
+      });
+    return user;
   }
 
   validateSignature(address: string, message: string, signature: string) {
@@ -23,7 +28,18 @@ export class AuthenticationService {
     if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
       throw new UnauthorizedException('Signature does not match!');
     }
-    return address.toLowerCase();
+
+    const user = this.userService
+      .upsertUser({
+        value: { web3Address: address.toLowerCase() },
+      })
+      .then((user) => {
+        return (
+          user ||
+          this.userService.getUser({ web3Address: address.toLowerCase() })
+        );
+      });
+    return user;
   }
 
   generateAuthenticationMessage(address: string) {

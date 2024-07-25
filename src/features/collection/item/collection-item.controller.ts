@@ -10,8 +10,9 @@ import {
 } from '~/models/collection-item.model';
 import { Result } from '~/shared/response';
 import { CollectionItemService } from './collection-item.service';
-import { Address, Public } from '../../authentication';
+import { Address, Email, Public } from '../../authentication';
 import { map } from 'lodash';
+import { UserId } from '~/features/authentication/decorators/userId.decorator';
 
 export interface CreateCollectionItem
   extends SetOptional<RawCreateCollectionItem, 'collectionId'> {}
@@ -24,7 +25,7 @@ export class CollectionItemController {
   public async createCollectionItem(
     @TypedParam('collectionId') collectionId: Collection['id'],
     @TypedBody() body: CreateCollectionItem,
-    @Address() address: string,
+    @UserId() userId: string,
   ) {
     body.collectionId = collectionId;
     typia.misc.prune<CreateCollectionItem>(body);
@@ -40,7 +41,7 @@ export class CollectionItemController {
   public async createCollectionItems(
     @TypedParam('collectionId') collectionId: Collection['id'],
     @TypedBody() body: Array<CreateCollectionItem>,
-    @Address() address: string,
+    @UserId() userId: string,
   ) {
     body = map(body, (_) => {
       _.collectionId = collectionId;

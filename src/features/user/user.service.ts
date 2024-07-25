@@ -1,11 +1,15 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { DBQueryConfig, ExtractTablesWithRelations } from 'drizzle-orm';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { DBQueryConfig, eq, ExtractTablesWithRelations } from 'drizzle-orm';
 import { first } from 'lodash';
 import typia from 'typia';
 import { CreateUser } from '~/models/user.model';
 import { DatabaseService } from '~/modules/database/database.service';
 import * as tables from '~/modules/database/schema';
-import { InsertUser, userTable } from '~/modules/database/schema';
+import { InsertUser, User, userTable } from '~/modules/database/schema';
 import { StorageService } from '~/modules/storage/storage.service';
 
 type Tables = typeof tables;
@@ -40,6 +44,39 @@ export class UserService {
       );
     }
 
+    return userEntry;
+  }
+  async getUser(
+    props: { id: string } | { email: string } | { web3Address: string },
+  ) {
+    let userEntry: undefined | User;
+    if (typia.is<{ id: string }>(props)) {
+      const { id } = props;
+      userEntry = await this.databaseService.query.userTable.findFirst({
+        where: () => eq(userTable.id, id),
+      });
+      if (!userEntry) {
+        throw new NotFoundException(`User with id: ${id} not found`);
+      }
+    } else if (typia.is<{ email: string }>(props)) {
+      const { email } = props;
+      userEntry = await this.databaseService.query.userTable.findFirst({
+        where: () => eq(userTable.email, email),
+      });
+      if (!userEntry) {
+        throw new NotFoundException(`User with email: ${email} not found`);
+      }
+    } else if (typia.is<{ web3Address: string }>(props)) {
+      const { web3Address } = props;
+      userEntry = await this.databaseService.query.userTable.findFirst({
+        where: () => eq(userTable.web3Address, web3Address),
+      });
+      if (!userEntry) {
+        throw new NotFoundException(
+          `User with web3Address: ${web3Address} not found`,
+        );
+      }
+    }
     return userEntry;
   }
 

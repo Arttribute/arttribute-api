@@ -6,7 +6,8 @@ import { TypedBody, TypedParam } from '@nestia/core';
 import typia from 'typia';
 import { CreateCollection, UpdateCollection } from '~/models/collection.model';
 import { Result } from '~/shared/response';
-import { Address, Public } from '../authentication';
+import { Address, Email, Public } from '../authentication';
+import { UserId } from '../authentication/decorators/userId.decorator';
 
 @Controller({ version: '2', path: 'collections' })
 export class CollectionController {
@@ -15,10 +16,10 @@ export class CollectionController {
   @Post()
   public async createCollection(
     @TypedBody() body: CreateCollection,
-    @Address() address: string,
+    @UserId() userId: string,
   ) {
     typia.misc.prune(body);
-    (body as unknown as Collection).creatorId = address;
+    (body as unknown as Collection).creatorId = userId;
     const collection = await this.collectionService.createCollection({
       value: body,
     });

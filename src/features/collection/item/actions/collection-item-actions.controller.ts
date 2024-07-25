@@ -5,8 +5,9 @@ import { Artifact, Collection } from '~/modules/database/schema';
 import { map } from 'lodash';
 import typia from 'typia';
 import { Result } from '~/shared/response';
-import { Address } from '~/features/authentication';
+import { Address, Email } from '~/features/authentication';
 import { CreateCollectionItem } from '../collection-item.controller';
+import { UserId } from '~/features/authentication/decorators/userId.decorator';
 
 @Controller({ version: '2', path: 'collections/:collectionId/items' })
 export class CollectionItemActionsController {
@@ -16,7 +17,7 @@ export class CollectionItemActionsController {
   public async addCollectionItem(
     @TypedParam('collectionId') collectionId: Collection['id'],
     @TypedBody() body: string,
-    @Address() address: string,
+    @UserId() userId: string,
   ) {
     const collection = await this.collectionItemService.createCollectionItem({
       value: { collectionId, itemId: body },
@@ -29,7 +30,7 @@ export class CollectionItemActionsController {
   public async addCollectionItems(
     @TypedParam('collectionId') collectionId: Collection['id'],
     @TypedBody() body: Array<string>,
-    @Address() address: string,
+    @UserId() userId: string,
   ) {
     const collection = await this.collectionItemService.createCollectionItems({
       value: map(body, (itemId) => ({ collectionId, itemId })),
